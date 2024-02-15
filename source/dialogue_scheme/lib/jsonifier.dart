@@ -14,11 +14,11 @@ class Jsonifier extends StatelessWidget {
     String buf = "[";
     for(final b in blocks) {
       buf += "\n {";
-      buf += "\n  \"id\": \"${b.id}\"";
-      buf += "\n  \"ty\": \"${b.ty}\"";
+      buf += "\n  \"id\": \"${b.id}\",";
+      buf += "\n  \"ty\": \"${b.ty}\",";
       buf += "\n  \"msg\": {";
-      buf += "\n    \"speaker\": \"${b.speaker}\"";
-      buf += "\n    \"text\": \"${b.text}\"";
+      buf += "\n    \"speaker\": \"${b.speaker}\",";
+      buf += "\n    \"text\": \"${b.text}\",";
       buf += "\n    \"next\": \"${b.next}\"";
       buf += "\n  }";
       buf += "\n }\n";

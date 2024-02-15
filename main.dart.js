@@ -7877,7 +7877,7 @@ this.b=b},
 CW:function CW(a){this.a=a},
 app(a){var s,r,q,p
 for(s=a.length,r="[",q=0;q<s;++q){p=a[q]
-r=r+"\n {"+('\n  "id": "'+p.w+'"')+('\n  "ty": "'+p.x+'"')+'\n  "msg": {'+('\n    "speaker": "'+p.y+'"')+('\n    "text": "'+p.z+'"')+('\n    "next": "'+p.Q+'"')+"\n  }\n }\n"}return r+"]"},
+r=r+"\n {"+('\n  "id": "'+p.w+'",')+('\n  "ty": "'+p.x+'",')+'\n  "msg": {'+('\n    "speaker": "'+p.y+'",')+('\n    "text": "'+p.z+'",')+('\n    "next": "'+p.Q+'"')+"\n  }\n }\n"}return r+"]"},
 Dg:function Dg(a,b){this.c=a
 this.d=$
 this.a=b},
