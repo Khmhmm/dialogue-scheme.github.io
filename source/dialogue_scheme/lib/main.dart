@@ -45,37 +45,36 @@ class _MyHomePageState extends State<MyHomePage> {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: Text(widget.title),
+      // centerTitle: true,
       actions: [
-        Flexible(
-          child: Row(children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  widget.showJson = false;
-                });
-              },
-              child: Icon(
-                widget.showJson? Icons.grid_off : Icons.grid_on,
-                color: widget.showJson? Colors.black : Colors.white,
-                size: 32,
-              ),
+        Row(children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                widget.showJson = false;
+              });
+            },
+            child: Icon(
+              widget.showJson? Icons.grid_off : Icons.grid_on,
+              color: widget.showJson? Colors.black : Colors.white,
+              size: 32,
             ),
-            SizedBox(width: 16),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  widget.showJson = true;
-                });
-              },
-              child: Icon(
-                widget.showJson? Icons.document_scanner : Icons.document_scanner_outlined,
-                color: widget.showJson? Colors.white : Colors.black,
-                size: 32,
-              ),
+          ),
+          SizedBox(width: 16),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                widget.showJson = true;
+              });
+            },
+            child: Icon(
+              widget.showJson? Icons.document_scanner : Icons.document_scanner_outlined,
+              color: widget.showJson? Colors.white : Colors.black,
+              size: 32,
             ),
-          ]),
-        ),
-        Flexible(child: SizedBox()),
+          ),
+        ]),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.05),
       ],
     );
   }
@@ -90,8 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     setState(() {
-      Offset off = gridWidget.getCurrentTopLeftOffset();
-      widget.blocks.add(DataBlock(x: off.dx + 25, y: off.dy + 25, i: widget.blocks.length));
+      gridWidget.addBlock();
     });
   }
 
@@ -104,17 +102,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    // print("Page blocks: ${widget.blocks.length}; first is: ${(widget.blocks.length > 0)? widget.blocks[0]?.x : widget.blocks.length}, ${(widget.blocks.length > 0)? widget.blocks[0]?.y : widget.blocks.length}");
     gridWidget = GridWidget(blocks: widget.blocks, updBlocksCb: updBlocks);
 
     return Scaffold(
       appBar: constructAppBar(context),
       body: widget.showJson? Jsonifier(widget.blocks): gridWidget,
-      floatingActionButton: (!widget.showJson)? FloatingActionButton(
-        onPressed: addDataBlock,
-        tooltip: 'Add',
-        child: const Icon(Icons.add),
-      ) : null,
     );
   }
 }

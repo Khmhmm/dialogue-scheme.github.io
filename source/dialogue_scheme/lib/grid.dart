@@ -14,6 +14,9 @@ class GridWidget extends StatefulWidget {
 
   void Function(List<DataBlock>) updBlocksCb;
 
+  void addBlock() {
+    this.blocks.add(DataBlock(x: currentOffsetFromTopLeftConner.dx * 1.001 + 2, y: currentOffsetFromTopLeftConner.dy * 1.001 + 2, i: this.blocks.length));
+  }
   void setBlocks(List<DataBlock> blocks) { this.blocks = blocks; }
 
   @override
@@ -27,17 +30,7 @@ class _GridWidgetState extends State<GridWidget> {
   void _updateLocation(PointerEvent details) {
     setState(() {
       widget.mousePos = (widget.currentOffsetFromTopLeftConner + details.position) / zoom;
-      final ids = getAllIds();
-      widget.blocks = widget.blocks.map((b) {
-        b.setIds(ids);
-        return b;
-      }).toList();
-      widget.updBlocksCb(widget.blocks);
     });
-  }
-
-  List<String> getAllIds() {
-    return widget.blocks.map((b) => b.id).toList();
   }
 
   @override
@@ -51,7 +44,7 @@ class _GridWidgetState extends State<GridWidget> {
           child: InteractiveViewer(
             trackpadScrollCausesScale: true,
             minScale: 1.0,
-            maxScale: 15.0,
+            maxScale: 5.0,
             transformationController: transformationController,
             onInteractionEnd: (details) {
               setState(() {
@@ -64,12 +57,7 @@ class _GridWidgetState extends State<GridWidget> {
             onInteractionUpdate: (details) {
               setState(() {
                 zoom = transformationController.value[0];
-                final ids = widget.blocks.map((b) => b.id).toList();
-                widget.blocks = widget.blocks.map((b) {
-                  b.setZoom(zoom);
-                  b.setIds(ids);
-                  return b;
-                }).toList();
+                widget.updBlocksCb(widget.blocks);
               });
             },
             child: Stack(
@@ -85,7 +73,16 @@ class _GridWidgetState extends State<GridWidget> {
             ),
           ),
         ),
-        Align(alignment: Alignment.bottomLeft, child: Text("(${widget.mousePos.dx.toInt()}; ${widget.mousePos.dy.toInt()})")),
+        Row(children: [
+          Align(alignment: Alignment.bottomLeft, child: Text("  x${zoom.toInt()} (${widget.mousePos.dx.toInt()}; ${widget.mousePos.dy.toInt()})")),
+          Spacer(),
+          FloatingActionButton(
+            onPressed: widget.addBlock,
+            tooltip: 'Add',
+            child: const Icon(Icons.add),
+          ),
+          SizedBox(width: 16),
+        ]),
       ]),
     );
   }

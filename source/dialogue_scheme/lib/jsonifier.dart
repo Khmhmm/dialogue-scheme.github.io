@@ -32,19 +32,25 @@ class Jsonifier extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          padding: EdgeInsets.only(left: 8, top: 8, bottom: 8, right: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(25), bottomRight: Radius.circular(25)),
-            color: Theme.of(context).colorScheme.inversePrimary,
-          ),
-          child: IconButton(
-            hoverColor: Theme.of(context).colorScheme.onSecondary,
-            onPressed: () { Clipboard.setData(ClipboardData(text: this.json)).then((_){}); },
-            icon: Icon(
-              Icons.content_copy,
-              size: 24,
-              color: Theme.of(context).colorScheme.secondary,
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.05 - 12),
+            child: Container(
+              padding: EdgeInsets.only(left: 8, top: 8, bottom: 8, right: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(25), bottomRight: Radius.circular(25)),
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+              child: IconButton(
+                hoverColor: Theme.of(context).colorScheme.onSecondary,
+                onPressed: () { Clipboard.setData(ClipboardData(text: this.json)).then((_){}); },
+                icon: Icon(
+                  Icons.content_copy,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
             ),
           ),
         ),
@@ -56,7 +62,7 @@ class Jsonifier extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: EdgeInsets.only(left: 16),
-                child: Text(json),
+                child: Text(json, style: TextStyle(fontSize: 20)),
               ),
             ),
           ),
