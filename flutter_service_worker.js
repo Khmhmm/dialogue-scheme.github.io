@@ -3,13 +3,13 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"main.dart.js": "8c00cdb914b8e4ca4cd1ce6b618750e0",
-"index.html": "4ee7cf7510df942028ec8c14dedc5068",
-"/": "4ee7cf7510df942028ec8c14dedc5068",
+const RESOURCES = {"main.dart.js": "6cd6b8613a492b52f5476d61347f5061",
+"index.html": "9fe0fcc303c21031b9d518fc7e97b7e7",
+"/": "9fe0fcc303c21031b9d518fc7e97b7e7",
 "version.json": "a78691e160f0fae15719e0a776f6b319",
 "manifest.json": "18ea6414bb3fa3d407d5b0a5ca71022c",
 "assets/NOTICES": "4e37236f59df3057f6f183adfeb3fa0d",
-"assets/fonts/MaterialIcons-Regular.otf": "0d19afce64a48629ba57b9ed0e0b5116",
+"assets/fonts/MaterialIcons-Regular.otf": "075d0b25ee5d5e801b8af26e016fe5db",
 "assets/shaders/ink_sparkle.frag": "f8b80e740d33eb157090be4e995febdf",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
 "assets/AssetManifest.bin": "693635b5258fe5f1cda720cf224f158c",
