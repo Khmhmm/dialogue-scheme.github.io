@@ -12,10 +12,20 @@ class GridWidget extends StatefulWidget {
   Offset currentOffsetFromTopLeftConner = Offset(0.0, 0.0);
   Offset getCurrentTopLeftOffset() { return currentOffsetFromTopLeftConner; }
 
+  // only for adding blocks, causes bugs when used in grid things
+  double zoom = 1.0;
+
   void Function(List<DataBlock>) updBlocksCb;
 
   void addBlock() {
-    this.blocks.add(DataBlock(x: currentOffsetFromTopLeftConner.dx * 1.001 + 2, y: currentOffsetFromTopLeftConner.dy * 1.001 + 2, i: this.blocks.length));
+    print(currentOffsetFromTopLeftConner);
+    this.blocks.add(
+      DataBlock(
+        x: currentOffsetFromTopLeftConner.dx / 1.5 + 5,
+        y: currentOffsetFromTopLeftConner.dy / (zoom * 2) + 5,
+        i: this.blocks.length
+      )
+    );
   }
   void setBlocks(List<DataBlock> blocks) { this.blocks = blocks; }
 
@@ -33,9 +43,37 @@ class _GridWidgetState extends State<GridWidget> {
     });
   }
 
+  Widget drawLine(Offset p1, Offset p2, Size screenSize) {
+    return Center(
+      child: CustomPaint(
+        size: Size(screenSize.height * 5, screenSize.width * 5),
+        painter: LinePainter(p1: p1, p2: p2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+
+    List<Widget> lines = [];
+    if (widget.blocks.length > 2) {
+      for(int i=0; i<widget.blocks.length; i++) {
+        if (widget.blocks[i].next == "") {
+          continue;
+        }
+        final matchingNextBlock = widget.blocks.where((b) => b.id == widget.blocks[i].next).toList();
+        if (matchingNextBlock.length > 0) {
+          lines.add(
+            drawLine(
+              Offset(widget.blocks[i].x + 130, widget.blocks[i].y + 12),
+              Offset(matchingNextBlock[0].x, matchingNextBlock[0].y + 12),
+              screenSize,
+            )
+          );
+        }
+      }
+    }
 
     return MouseRegion(
       onHover: _updateLocation,
@@ -44,7 +82,7 @@ class _GridWidgetState extends State<GridWidget> {
           child: InteractiveViewer(
             trackpadScrollCausesScale: true,
             minScale: 1.0,
-            maxScale: 5.0,
+            maxScale: 2.5,
             transformationController: transformationController,
             onInteractionEnd: (details) {
               setState(() {
@@ -58,6 +96,7 @@ class _GridWidgetState extends State<GridWidget> {
               setState(() {
                 zoom = transformationController.value[0];
                 widget.updBlocksCb(widget.blocks);
+                widget.zoom = zoom;
               });
             },
             child: Stack(
@@ -68,6 +107,7 @@ class _GridWidgetState extends State<GridWidget> {
                     painter: GridPainter(),
                   ),
                 ),
+                ...lines,
                 ...widget.blocks,
               ],
             ),
@@ -121,6 +161,24 @@ class GridPainter extends CustomPainter {
 
 
 
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+class LinePainter extends CustomPainter {
+  LinePainter({required this.p1, required this.p2});
+
+  Offset p1;
+  Offset p2;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Color(0x55000000)
+      ..strokeWidth = 2;
+    canvas.drawLine(p1, p2, paint);
   }
 
   @override

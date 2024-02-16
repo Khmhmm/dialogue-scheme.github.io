@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dialogue_scheme/grid.dart';
 import 'package:dialogue_scheme/jsonifier.dart';
+import 'package:dialogue_scheme/about.dart';
 import 'package:dialogue_scheme/block.dart';
 
 void main() {
@@ -24,13 +25,14 @@ class MyApp extends StatelessWidget {
 }
 
 
+enum Page {grid, json, about}
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({super.key, required this.title});
   final String title;
 
-  bool showJson = false;
   List<DataBlock> blocks = [];
+  Page page = Page.grid;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -51,12 +53,12 @@ class _MyHomePageState extends State<MyHomePage> {
           GestureDetector(
             onTap: () {
               setState(() {
-                widget.showJson = false;
+                widget.page = Page.grid;
               });
             },
             child: Icon(
-              widget.showJson? Icons.grid_off : Icons.grid_on,
-              color: widget.showJson? Colors.black : Colors.white,
+              (widget.page == Page.grid)? Icons.grid_on : Icons.grid_off,
+              color: (widget.page == Page.grid)? Colors.white : Colors.black,
               size: 32,
             ),
           ),
@@ -64,12 +66,25 @@ class _MyHomePageState extends State<MyHomePage> {
           GestureDetector(
             onTap: () {
               setState(() {
-                widget.showJson = true;
+                widget.page = Page.json;
               });
             },
             child: Icon(
-              widget.showJson? Icons.document_scanner : Icons.document_scanner_outlined,
-              color: widget.showJson? Colors.white : Colors.black,
+              (widget.page == Page.json)? Icons.document_scanner : Icons.document_scanner_outlined,
+              color: (widget.page == Page.json)? Colors.white : Colors.black,
+              size: 32,
+            ),
+          ),
+          SizedBox(width: 16),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                widget.page = Page.about;
+              });
+            },
+            child: Icon(
+              (widget.page == Page.about)? Icons.info_rounded : Icons.info_outline,
+              color: (widget.page == Page.about)? Colors.white : Colors.black,
               size: 32,
             ),
           ),
@@ -99,6 +114,23 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget getBody(GridWidget gridWidget) {
+    switch(widget.page) {
+      case Page.grid:
+        return gridWidget;
+        break;
+      case Page.json:
+        return Jsonifier(widget.blocks);
+        break;
+      case Page.about:
+        return AboutWidget();
+        break;
+      default:
+        return gridWidget;
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -106,7 +138,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: constructAppBar(context),
-      body: widget.showJson? Jsonifier(widget.blocks): gridWidget,
+      // body: widget.showJson? Jsonifier(widget.blocks): gridWidget,
+      body: getBody(gridWidget),
     );
   }
 }

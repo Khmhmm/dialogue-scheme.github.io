@@ -19,6 +19,9 @@ class DataBlock extends StatefulWidget {
   String text = "";
   String next = "";
 
+  String ifs = "";
+  String options = "";
+
   // appearance
   ColorTag colorTag = ColorTag.theme;
 
@@ -33,6 +36,8 @@ class _DataBlockState extends State<DataBlock> {
   TextEditingController _speakerTextCtrl = TextEditingController();
   TextEditingController _textTextCtrl = TextEditingController();
   TextEditingController _nextTextCtrl = TextEditingController();
+  TextEditingController _ifsTextCtrl = TextEditingController();
+  TextEditingController _optionsTextCtrl = TextEditingController();
 
   String dropdownValue = "";
   late Color clr;
@@ -45,6 +50,8 @@ class _DataBlockState extends State<DataBlock> {
     _speakerTextCtrl.value = TextEditingValue(text: widget.speaker);
     _textTextCtrl.value = TextEditingValue(text: widget.text);
     _nextTextCtrl.value = TextEditingValue(text: widget.next);
+    _ifsTextCtrl.value = TextEditingValue(text: widget.ifs);
+    _optionsTextCtrl.value = TextEditingValue(text: widget.options);
   }
 
 
@@ -146,7 +153,7 @@ class _DataBlockState extends State<DataBlock> {
         child: Opacity(
           opacity: 0.7,
           child: Container(
-            width: 125,
+            width: 130,
             padding: EdgeInsets.symmetric(horizontal: 7, vertical: 9),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
@@ -160,6 +167,8 @@ class _DataBlockState extends State<DataBlock> {
                 buildPropertyRow("ty", _tyTextCtrl, MediaQuery.of(context).textScaleFactor),
                 buildPropertyRow("speaker", _speakerTextCtrl, MediaQuery.of(context).textScaleFactor),
                 buildPropertyRow("text", _textTextCtrl, MediaQuery.of(context).textScaleFactor),
+                (widget.ty == 1)? buildPropertyRow("if", _ifsTextCtrl, MediaQuery.of(context).textScaleFactor) : Container(),
+                (widget.ty == 2)? buildPropertyRow("options", _optionsTextCtrl, MediaQuery.of(context).textScaleFactor) : Container(),
                 buildPropertyRow("next", _nextTextCtrl, MediaQuery.of(context).textScaleFactor),
                 // buildDropIdRow("next", widget.allIds),
                 SizedBox(height: 4),
@@ -181,16 +190,22 @@ class _DataBlockState extends State<DataBlock> {
 
   void updateFields(String? _) {
     setState(() {
-      widget.ty = int.parse(_tyTextCtrl.value.text);
+      try {
+        widget.ty = int.parse(_tyTextCtrl.value.text);
+      } catch(_e) {
+        widget.ty = 0;
+      }
       widget.speaker = _speakerTextCtrl.value.text;
       widget.text = _textTextCtrl.value.text;
       widget.next = _nextTextCtrl.value.text;
+      widget.ifs = _ifsTextCtrl.value.text;
+      widget.options = _optionsTextCtrl.value.text;
     });
   }
 
   Widget buildPropertyRow(String fieldName, TextEditingController textCtrl, double factor) {
     return SizedBox(
-      width: 125 - 14,
+      width: 130 - 14,
       // height: 7 * factor,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
@@ -248,7 +263,7 @@ class _DataBlockState extends State<DataBlock> {
 
   Widget buildDropIdRow(String fieldName, List<String> items) {
     return SizedBox(
-      width: 125 - 20,
+      width: 130 - 20,
       height: 7,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
