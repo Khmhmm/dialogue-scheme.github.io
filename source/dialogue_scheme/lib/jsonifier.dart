@@ -25,8 +25,20 @@ class Jsonifier extends StatelessWidget {
       buf += "\n  \"msg\": {";
       buf += "\n    \"speaker\": \"${b.speaker}\",";
       buf += "\n    \"text\": \"${b.text}\",";
-      buf += (b.ty == 1)? "\n    \"if\": \"${b.ifs}\"," : "";
-      buf += (b.ty == 2)? "\n    \"options\": \"${b.options}\"," : "";
+      if (b.ty == 1) {
+        buf += "\n    \"if\": [";
+        for(final ifSlct in b.ifs) {
+          buf += "\n    ${describeIfSelector(ifSlct)}";
+        }
+        buf += "\n    ],";
+      }
+      if (b.ty == 2) {
+        buf += "\n    \"options\": [";
+        for(final opSlct in b.options) {
+          buf += "\n    ${describeOptionsSelector(opSlct)}";
+        }
+        buf += "\n    ],";
+      }
       buf += "\n    \"next\": \"${b.next}\"";
       buf += "\n  }";
       buf += "\n }\n";
@@ -34,6 +46,14 @@ class Jsonifier extends StatelessWidget {
     buf += "]";
 
     return buf;
+  }
+
+  static String describeIfSelector(IfSelector ifSlct) {
+    return "[\"${ifSlct.condition}\", \"${ifSlct.idNext}\"]";
+  }
+
+  static String describeOptionsSelector(OptionSelector opSlct) {
+    return "[\"${opSlct.text}\", \"${opSlct.action}\" \"${opSlct.idNext}\"]";
   }
 
   @override

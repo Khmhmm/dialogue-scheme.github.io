@@ -19,8 +19,8 @@ class DataBlock extends StatefulWidget {
   String text = "";
   String next = "";
 
-  String ifs = "";
-  String options = "";
+  List<IfSelector> ifs = [];
+  List<OptionSelector> options = [];
 
   // appearance
   ColorTag colorTag = ColorTag.theme;
@@ -36,8 +36,7 @@ class _DataBlockState extends State<DataBlock> {
   TextEditingController _speakerTextCtrl = TextEditingController();
   TextEditingController _textTextCtrl = TextEditingController();
   TextEditingController _nextTextCtrl = TextEditingController();
-  TextEditingController _ifsTextCtrl = TextEditingController();
-  TextEditingController _optionsTextCtrl = TextEditingController();
+  // TextEditingController _optionsTextCtrl = TextEditingController();
 
   String dropdownValue = "";
   late Color clr;
@@ -50,8 +49,6 @@ class _DataBlockState extends State<DataBlock> {
     _speakerTextCtrl.value = TextEditingValue(text: widget.speaker);
     _textTextCtrl.value = TextEditingValue(text: widget.text);
     _nextTextCtrl.value = TextEditingValue(text: widget.next);
-    _ifsTextCtrl.value = TextEditingValue(text: widget.ifs);
-    _optionsTextCtrl.value = TextEditingValue(text: widget.options);
   }
 
 
@@ -64,6 +61,57 @@ class _DataBlockState extends State<DataBlock> {
 
   String generateId() {
     return md5.convert(utf8.encode(DateTime.now().toIso8601String())).toString();
+  }
+
+  List<Widget> constructIfsInnerWidgets(BuildContext context) {
+    List<Widget> ifsInnerWidgets = [];
+    for(int i=0; i<widget.ifs.length; i++) {
+      if (widget.ty != 1) { break; }
+
+      TextEditingController conditionCtrl = TextEditingController(text: widget.ifs[i].condition)..text = widget.ifs[i].condition
+        ..selection =  TextSelection.collapsed(offset: widget.ifs[i].condition.length);
+      TextEditingController idNextCtrl = TextEditingController(text: widget.ifs[i].idNext)..text = widget.ifs[i].idNext
+        ..selection = TextSelection.collapsed(offset: widget.ifs[i].idNext.length);
+
+      Widget inner = buildInnerFields(
+        ["condition", "next"],
+        [conditionCtrl, idNextCtrl],
+        [
+          (String? _) => setState(() { widget.ifs[i].condition = conditionCtrl.value.text; }),
+          (String? _) => setState(() { widget.ifs[i].idNext = idNextCtrl.value.text; }),
+        ],
+        MediaQuery.of(context).textScaleFactor
+      );
+      ifsInnerWidgets.add(inner);
+    }
+    return ifsInnerWidgets;
+  }
+
+  List<Widget> consctructOptionsInnerWidgets(BuildContext context) {
+    List<Widget> optionsInnerWidgets = [];
+    for(int i=0; i<widget.options.length; i++) {
+      if (widget.ty != 2) { break; }
+
+      TextEditingController textCtrl = TextEditingController(text: widget.options[i].text)..text = widget.options[i].text
+        ..selection = TextSelection.collapsed(offset: widget.options[i].text.length);
+      TextEditingController actionCtrl = TextEditingController(text: widget.options[i].action)..text = widget.options[i].action
+        ..selection = TextSelection.collapsed(offset: widget.options[i].action.length);
+      TextEditingController idNextCtrl = TextEditingController(text: widget.options[i].idNext)..text = widget.options[i].idNext
+        ..selection = TextSelection.collapsed(offset: widget.options[i].idNext.length);
+
+      Widget inner = buildInnerFields(
+        ["text", "action", "next"],
+        [textCtrl, actionCtrl, idNextCtrl],
+        [
+          (String? _) => setState(() { widget.options[i].text = textCtrl.value.text; }),
+          (String? _) => setState(() { widget.options[i].action = actionCtrl.value.text; }),
+          (String? _) => setState(() { widget.options[i].idNext = idNextCtrl.value.text; }),
+        ],
+        MediaQuery.of(context).textScaleFactor
+      );
+      optionsInnerWidgets.add(inner);
+    }
+    return optionsInnerWidgets;
   }
 
   Color getColor(BuildContext context) {
@@ -132,6 +180,26 @@ class _DataBlockState extends State<DataBlock> {
     }
   }
 
+  String selectTyDescription(String tyId) {
+    switch(tyId) {
+      case "-1":
+        return "final replics";
+        break;
+      case "0":
+        return "base replics";
+        break;
+      case "1":
+        return "if-then replics";
+        break;
+      case "2":
+        return "select option";
+        break;
+      default:
+        return "base replics";
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.id == "") {
@@ -142,6 +210,15 @@ class _DataBlockState extends State<DataBlock> {
 
     clr = getColor(context);
     stl = TextStyle(fontSize: 5, color: Colors.white);
+
+    List<Widget> ifsInnerWidgets = constructIfsInnerWidgets(context);
+    List<Widget> optionsInnerWidgets = consctructOptionsInnerWidgets(context);
+
+    void Function(String?) defaultOnEdit = (String? _) {
+      setState(() {
+        updateFields();
+      });
+    };
 
     return Positioned(
       left: widget.x,
@@ -164,13 +241,21 @@ class _DataBlockState extends State<DataBlock> {
             child: Column(
               children: [
                 buildStaticRow("id", widget.id, () { Clipboard.setData(ClipboardData(text: widget.id)).then((_){}); }),
-                buildPropertyRow("ty", _tyTextCtrl, MediaQuery.of(context).textScaleFactor),
-                buildPropertyRow("speaker", _speakerTextCtrl, MediaQuery.of(context).textScaleFactor),
-                buildPropertyRow("text", _textTextCtrl, MediaQuery.of(context).textScaleFactor),
-                (widget.ty == 1)? buildPropertyRow("if", _ifsTextCtrl, MediaQuery.of(context).textScaleFactor) : Container(),
-                (widget.ty == 2)? buildPropertyRow("options", _optionsTextCtrl, MediaQuery.of(context).textScaleFactor) : Container(),
-                buildPropertyRow("next", _nextTextCtrl, MediaQuery.of(context).textScaleFactor),
-                // buildDropIdRow("next", widget.allIds),
+                buildDropTyRow("ty", _tyTextCtrl, ["-1", "0", "1", "2"], selectTyDescription),
+                buildPropertyRow("speaker", _speakerTextCtrl, MediaQuery.of(context).textScaleFactor, defaultOnEdit),
+                buildPropertyRow("text", _textTextCtrl, MediaQuery.of(context).textScaleFactor, defaultOnEdit),
+
+                (widget.ty == 1)? buildResizableRow(
+                  "if", () => setState(() { widget.ifs.add(IfSelector(condition: "", idNext: "")); }),
+                ) : Container(),
+                ...ifsInnerWidgets,
+
+                (widget.ty == 2)? buildResizableRow(
+                  "options", () => setState(() { widget.options.add(OptionSelector(text: "", action: "", idNext: "")); }),
+                ) : Container(),
+                ...optionsInnerWidgets,
+
+                buildPropertyRow("next", _nextTextCtrl, MediaQuery.of(context).textScaleFactor, defaultOnEdit),
                 SizedBox(height: 4),
                 GestureDetector(
                   onTap: () => reselectColor(context),
@@ -188,22 +273,18 @@ class _DataBlockState extends State<DataBlock> {
     );
   }
 
-  void updateFields(String? _) {
-    setState(() {
-      try {
-        widget.ty = int.parse(_tyTextCtrl.value.text);
-      } catch(_e) {
-        widget.ty = 0;
-      }
-      widget.speaker = _speakerTextCtrl.value.text;
-      widget.text = _textTextCtrl.value.text;
-      widget.next = _nextTextCtrl.value.text;
-      widget.ifs = _ifsTextCtrl.value.text;
-      widget.options = _optionsTextCtrl.value.text;
-    });
+  void updateFields() {
+    try {
+      widget.ty = int.parse(_tyTextCtrl.value.text);
+    } catch(_e) {
+      widget.ty = 0;
+    }
+    widget.speaker = _speakerTextCtrl.value.text;
+    widget.text = _textTextCtrl.value.text;
+    widget.next = _nextTextCtrl.value.text;
   }
 
-  Widget buildPropertyRow(String fieldName, TextEditingController textCtrl, double factor) {
+  Widget buildPropertyRow(String fieldName, TextEditingController textCtrl, double factor, void Function(String?) onEdit) {
     return SizedBox(
       width: 130 - 14,
       // height: 7 * factor,
@@ -214,7 +295,7 @@ class _DataBlockState extends State<DataBlock> {
             height: 7 * factor,
             child: TextField(
               controller: textCtrl,
-              onChanged: updateFields,
+              onChanged: onEdit,
               maxLines: 1,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
@@ -261,32 +342,87 @@ class _DataBlockState extends State<DataBlock> {
     ]);
   }
 
-  Widget buildDropIdRow(String fieldName, List<String> items) {
+  Widget buildDropTyRow(String fieldName, TextEditingController textCtrl, List<String> items, String Function(String) converter) {
     return SizedBox(
-      width: 130 - 20,
+      width: 130 - 14,
       height: 7,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
+        SizedBox(width: 8),
+        Align(alignment: Alignment.centerLeft, child: Text(textCtrl.value.text ?? "0", style: stl, textAlign: TextAlign.left, overflow: TextOverflow.clip),),
         Spacer(),
-        DropdownButton<String>(
-          value: dropdownValue,
-          icon: Icon(Icons.arrow_downward, color: clr, size: 5),
-          style: stl,
-          elevation: 9,
-          onChanged: (String? value) {
-            setState(() {
-              dropdownValue = value!;
-              widget.next = value!;
-            });
-          },
-          items: items.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
+        Container(
+          width: 20,
+          alignment: Alignment.centerRight,
+          child: DropdownButton<String>(
+            value: textCtrl.value.text,
+            icon: Icon(Icons.arrow_downward, color: Colors.white, size: 7),
+            style: stl,
+            isExpanded: false,
+            elevation: 16,
+            onChanged: (String? value) {
+              setState(() {
+                textCtrl.value = TextEditingValue(text: value!);
+                updateFields();
+              });
+            },
+            items: items.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(converter(value), style: TextStyle(fontSize: 10, color: Colors.black)),
+              );
+            }).toList(),
+            selectedItemBuilder: (context) => [],
+          ),
         ),
       ]),
     );
   }
+
+  Widget buildResizableRow(String fieldName, VoidCallback resizeCb) {
+    return SizedBox(
+      width: 130 - 14,
+      height: 7,
+      child: Row(children: [
+        Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
+        Spacer(),
+        GestureDetector(
+          onTap: resizeCb,
+          child: Icon(Icons.add, size: 7, color: Colors.white),
+        ),
+      ]),
+    );
+  }
+
+  Widget buildInnerFields(List<String> fieldNames, List<TextEditingController> controllers, List<void Function(String?)> onEdits, double factor) {
+    List<Widget> rows = [];
+    rows.add(SizedBox(width: 125 - 14, height: 2, child: Divider(color: Colors.black, height: 2)));
+    for(int i=0; i<controllers.length; i++) {
+      rows.add(buildPropertyRow(fieldNames[i], controllers[i], factor, onEdits[i]));
+    }
+
+    return SizedBox(
+      width: 125 - 14,
+      // height: 7.0 * (fieldNames.length + 1),
+      child: Column(
+        children: rows,
+      ),
+    );
+  }
+}
+
+
+class IfSelector {
+  IfSelector({required this.condition, required this.idNext});
+
+  String condition;
+  String idNext;
+}
+
+class OptionSelector {
+  OptionSelector({required this.text, required this.action, required this.idNext});
+
+  String text;
+  String action;
+  String idNext;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:dialogue_scheme/block.dart';
 
 
@@ -21,8 +22,8 @@ class GridWidget extends StatefulWidget {
     print(currentOffsetFromTopLeftConner);
     this.blocks.add(
       DataBlock(
-        x: currentOffsetFromTopLeftConner.dx / 1.5 + 5,
-        y: currentOffsetFromTopLeftConner.dy / (zoom * 2) + 5,
+        x: math.min(currentOffsetFromTopLeftConner.dx / 1.5, 1800) + 5,
+        y: math.min(currentOffsetFromTopLeftConner.dy / (zoom * 2), 1000) + 5,
         i: this.blocks.length
       )
     );
@@ -62,12 +63,29 @@ class _GridWidgetState extends State<GridWidget> {
         if (widget.blocks[i].next == "") {
           continue;
         }
-        final matchingNextBlock = widget.blocks.where((b) => b.id == widget.blocks[i].next).toList();
-        if (matchingNextBlock.length > 0) {
+        var matchingNextBlock = widget.blocks.where((b) => b.id == widget.blocks[i].next).toList();
+        if (widget.blocks[i].ty == 1) {
+          print("Search for ${widget.blocks[i].ifs.length}");
+          for(final selector in widget.blocks[i].ifs) {
+            print("Search for ${selector.idNext}");
+            if (selector.idNext != "") {
+              final additionalBlocks = widget.blocks.where((b) => b.id == selector.idNext).toList();
+              matchingNextBlock = [...matchingNextBlock, ...additionalBlocks];
+            }
+          }
+        } else if (widget.blocks[i].ty == 2) {
+          for(final selector in widget.blocks[i].options) {
+            if (selector.idNext != "") {
+              final additionalBlocks = widget.blocks.where((b) => b.id == selector.idNext).toList();
+              matchingNextBlock = [...matchingNextBlock, ...additionalBlocks];
+            }
+          }
+        }
+        for(final mblock in matchingNextBlock) {
           lines.add(
             drawLine(
               Offset(widget.blocks[i].x + 130, widget.blocks[i].y + 12),
-              Offset(matchingNextBlock[0].x, matchingNextBlock[0].y + 12),
+              Offset(mblock.x, mblock.y + 12),
               screenSize,
             )
           );
