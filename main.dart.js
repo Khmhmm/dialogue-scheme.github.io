@@ -8879,18 +8879,20 @@ I2:function I2(a){this.a=a},
 IS:function IS(a,b,c){this.b=a
 this.c=b
 this.a=c},
-aG7(a){var s,r,q,p,o,n,m,l,k,j
-for(s=a.length,r="[",q=0;q<s;++q){p=a[q]
-o=p.w
-if(o===""&&p.x===""&&p.y==="")continue
-n=p.f
-m=p.r
-r=r+"\n {"+('\n  "id": "'+n+'",')+('\n  "ty": '+m+",")+'\n  "msg": {'+('\n    "speaker": "'+o+'",')+('\n    "text": "'+p.x+'",')
-if(m===1){r+='\n    "if": ['
-for(o=p.z,n=o.length,l=0;l<n;++l){k=o[l]
-r+="\n    "+('["'+k.a+'", "'+k.b+'"]')}r+="\n    ],"}if(m===2){r+='\n    "options": ['
-for(o=p.Q,n=o.length,l=0;l<n;++l){j=o[l]
-r+="\n    "+('["'+j.a+'", "'+j.b+'" "'+j.c+'"]')}r+="\n    ],"}r=r+('\n    "next": "'+p.y+'"')+"\n  }\n }\n"}return r+"]"},
+aG7(a){var s,r,q,p,o,n,m,l,k,j,i
+for(s=a.length,r=s-1,q="[",p=0;p<s;++p){o=a[p]
+n=o.w
+if(n===""&&o.x===""&&o.y==="")continue
+m=o.f
+l=o.r
+q=q+"\n {"+('\n  "id": "'+m+'",')+('\n  "ty": '+l+",")+'\n  "msg": {'+('\n    "speaker": "'+n+'",')+('\n    "text": "'+o.x+'",')
+if(l===1){q+='\n    "if": ['
+for(n=o.z,m=n.length,k=0;k<m;++k){j=n[k]
+q+="\n    "+('["'+j.a+'", "'+j.b+'"]')}q+="\n    ],"}if(l===2){q+='\n    "options": ['
+for(n=o.Q,m=n.length,k=0;k<m;++k){i=n[k]
+q+="\n    "+('["'+i.a+'", "'+i.b+'" "'+i.c+'"]')}q+="\n    ],"}n=o.y
+m=p<r?"\n },\n":"\n }\n"
+q=q+('\n    "next": "'+n+'"')+"\n  }"+m}return q+"]"},
 IB:function IB(a,b){this.c=a
 this.d=$
 this.a=b},
@@ -44022,7 +44024,7 @@ s=A.anG(A.S(a))
 r=$.axo()
 q=A.b([new A.Hd(A.aF(":([a-z0-9_+-]+):",!0,!0,!1),p)],t.xB)
 B.b.L(q,r.b)
-return A.nG(A.b([o,A.q5(A.cd(new A.J4('## Dialogues system\n\n### Base info\n\nReplics file should contain json object in format like:\n```\n[\n  { ... }, <- replics object, see examples below\n  { ... },\n  ...\n]\n```\nNaming of replics file should match the structure:\n```\n1 00 00 00\n^ just a number, means nothing but allow to keep other decimals\n  ^ act id, may be used when you have more than 99 replics for single character\n     ^ character id\n        ^ replics order number\n```\n\n### Replics types\n\n#### Commons\nReplics file should start with the first replics in order.\nAll the replics MUST have fields: "id", "ty", "msg". Also in field "msg" MUST exist fields "speaker", which contains speaker name or blank ("") if\nspeaker is a player, "next",\nwhich equals to id of the next replics or null if it is not points anywhere.\n\n#### Final replics, type -1\nFinishes dialogue. The next time you will try to talk with it, id from "next" of final replics will be shown.\n```\n{\n "id": "fjfsjefisej",\n "ty": -1,\n "msg": {\n  "speaker": "Someone",\n  "text": "how are you?",\n  "next": "fjsejfisej"\n }\n}\n```\n\n#### Base replics, type 0\nContains just text and pointer to next replics id\n```\n{\n "id": "fjsejfisej",\n "ty": 0,\n "msg": {\n  "speaker": "",\n  "text": "hello man",\n  "next": "fjfsjefisej"\n }\n}\n```\n\n#### If-then replics, type 1\nContains text and additional field "if". This field contains list with tuples. First element of tuple is predicate in ONE OF THESE FORMATS: {$pred1 and $pred2}, {$pred1 or $pred2}, {$pred}.\nOther formats may cause error.\n```\n{\n "id": "fjsejfisejf",\n "ty": 1,\n "msg": {\n  "speaker": "Someone",\n  "text": "how are you",\n  "if": [\n   ["charIsGreat and charHasWeapon", "fjfjf"],\n   ["charIsGreat or charIsHero", "fffswaejfjf"],\n   ["charIsGreat", "fjfjfqeqeasdzj"]\n  ],\n  "next": "fjseijfsiefjies"\n }\n}\n```\n\n#### Replics with select, type 2\nContains text and additional field "options". This field contains list with tuples. First element of tuple is a text to show, the second is consequences in ONE OF THESE FORMATS: {$var=$value}, {$var+=$value}, {$var-=$value}.\nOther formats may cause error.\n```\n{\n "id": "fjsejfisejfa",\n "ty": 2,\n "msg": {\n  "speaker": "Someone",\n  "text": "So what?",\n  "options": [\n   ["i am fine", "charIsFine=true", "eiqweiaw"],\n   ["give me money", "charMoney+=10", "eqpweqpdsofo"],\n   ["nothing", "", "fjseijiku"]\n  ],\n  "next": "fjseijiku"\n }\n}\n```\n',!1,s,p,p,p,p,p,p,p,new A.Hu(r.a,q),p,p,p,A.j(["code",new A.Gd()],t.N,t.Ce),B.IW,B.J1,!1,p),m.a.b*0.87,n.a.a*0.5),p,p)],t.p),B.aq,B.am,B.aL)}}
+return A.nG(A.b([o,A.q5(A.cd(new A.J4('## Dialogues system\n\n### Base info\n\nReplics file should contain json object in format like:\n```\n[\n  { ... }, <- replics object, see examples below\n  { ... },\n  ...\n]\n```\nNaming of replics file should match the structure:\n```\n1 00 00 00\n^ just a number, means nothing but allow to keep other decimals\n  ^ act id, may be used when you have more than 99 replics for single character\n     ^ character id\n        ^ replics order number\n```\n\n### Replics types\n\n#### Commons\nReplics file should start with the first replics in order.\nAll the replics MUST have fields: "id", "ty", "msg". Also in field "msg" MUST exist fields "speaker", which contains speaker name or blank ("") if\nspeaker is a player, "next",\nwhich equals to id of the next replics or null if it is not points anywhere.\n\n#### Final replics, type -1\nFinishes dialogue. The next time you will try to talk with it, id from "next" of final replics will be shown.\n```\n{\n "id": "fjfsjefisej",\n "ty": -1,\n "msg": {\n  "speaker": "Someone",\n  "text": "how are you?",\n  "next": "fjsejfisej"\n }\n}\n```\n\n#### Base replics, type 0\nContains just text and pointer to next replics id\n```\n{\n "id": "fjsejfisej",\n "ty": 0,\n "msg": {\n  "speaker": "",\n  "text": "hello man",\n  "next": "fjfsjefisej"\n }\n}\n```\n\n#### If-then replics, type 1\nContains text and additional field "if". This field contains list with tuples. First element of tuple is predicate in ONE OF THESE FORMATS: {$pred1 and $pred2}, {$pred1 or $pred2}, {$pred}.\nOther formats may cause error.\n```\n{\n "id": "fjsejfisejf",\n "ty": 1,\n "msg": {\n  "speaker": "Someone",\n  "text": "how are you",\n  "if": [\n   ["charIsGreat and charHasWeapon", "fjfjf"],\n   ["charIsGreat or charIsHero", "fffswaejfjf"],\n   ["charIsGreat", "fjfjfqeqeasdzj"]\n  ],\n  "next": "fjseijfsiefjies"\n }\n}\n```\n\n#### Replics with select, type 2\nContains text and additional field "options". This field contains list with tuples. First element of tuple is a text to show, the second is consequences in ONE OF THESE FORMATS: {$var=$value}, {$var+$value}, {$var-$value}.\nOther formats may cause error.\n```\n{\n "id": "fjsejfisejfa",\n "ty": 2,\n "msg": {\n  "speaker": "Someone",\n  "text": "So what?",\n  "options": [\n   ["i am fine", "charIsFine=true", "eiqweiaw"],\n   ["give me money", "charMoney+10", "eqpweqpdsofo"],\n   ["nothing", "", "fjseijiku"]\n  ],\n  "next": "fjseijiku"\n }\n}\n```\n',!1,s,p,p,p,p,p,p,p,new A.Hu(r.a,q),p,p,p,A.j(["code",new A.Gd()],t.N,t.Ce),B.IW,B.J1,!1,p),m.a.b*0.87,n.a.a*0.5),p,p)],t.p),B.aq,B.am,B.aL)}}
 A.Gd.prototype={}
 A.lL.prototype={
 I(){return"ColorTag."+this.b}}
@@ -44299,7 +44301,7 @@ ajg(a){return this.r.$1(a)}}
 A.BO.prototype={
 aaP(a){this.af(new A.afK(this,a))},
 O(a){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.bw(a,e,t.w).w.a,c=t.p,b=A.b([],c)
-if(f.a.c.length>2)for(s=d.b*5,r=d.a*5,q=t.vX,p=0;o=f.a.c,p<o.length;++p){if(o[p].y==="")continue
+if(f.a.c.length>=2)for(s=d.b*5,r=d.a*5,q=t.vX,p=0;o=f.a.c,p<o.length;++p){if(o[p].y==="")continue
 n=A.V(o).i("b9<1>")
 m=A.ae(new A.b9(o,new A.afN(f,p),n),!0,n.i("n.E"))
 o=f.a.c[p]

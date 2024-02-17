@@ -58,7 +58,7 @@ class _GridWidgetState extends State<GridWidget> {
     final screenSize = MediaQuery.of(context).size;
 
     List<Widget> lines = [];
-    if (widget.blocks.length > 2) {
+    if (widget.blocks.length >= 2) {
       for(int i=0; i<widget.blocks.length; i++) {
         if (widget.blocks[i].next == "") {
           continue;

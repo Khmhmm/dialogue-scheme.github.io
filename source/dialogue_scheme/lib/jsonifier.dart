@@ -15,7 +15,8 @@ class Jsonifier extends StatelessWidget {
 
   static String blocksToJson(List<DataBlock> blocks) {
     String buf = "[";
-    for(final b in blocks) {
+    for(int i=0; i<blocks.length; i++) {
+      final b = blocks[i];
       if (b.speaker == "" && b.text == "" && b.next == "") {
         continue;
       }
@@ -41,7 +42,7 @@ class Jsonifier extends StatelessWidget {
       }
       buf += "\n    \"next\": \"${b.next}\"";
       buf += "\n  }";
-      buf += "\n }\n";
+      buf += (i < blocks.length - 1)? "\n },\n" : "\n }\n";
     }
     buf += "]";
 

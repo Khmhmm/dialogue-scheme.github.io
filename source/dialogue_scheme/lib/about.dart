@@ -141,7 +141,7 @@ Other formats may cause error.
 ```
 
 #### Replics with select, type 2
-Contains text and additional field "options". This field contains list with tuples. First element of tuple is a text to show, the second is consequences in ONE OF THESE FORMATS: {$var=$value}, {$var+=$value}, {$var-=$value}.
+Contains text and additional field "options". This field contains list with tuples. First element of tuple is a text to show, the second is consequences in ONE OF THESE FORMATS: {$var=$value}, {$var+$value}, {$var-$value}.
 Other formats may cause error.
 ```
 {
@@ -152,7 +152,7 @@ Other formats may cause error.
   "text": "So what?",
   "options": [
    ["i am fine", "charIsFine=true", "eiqweiaw"],
-   ["give me money", "charMoney+=10", "eqpweqpdsofo"],
+   ["give me money", "charMoney+10", "eqpweqpdsofo"],
    ["nothing", "", "fjseijiku"]
   ],
   "next": "fjseijiku"
