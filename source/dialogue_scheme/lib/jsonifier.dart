@@ -58,7 +58,7 @@ class Jsonifier extends StatelessWidget {
   }
 
   static String describeOptionsSelector(OptionSelector opSlct) {
-    return "[\"${opSlct.text}\", \"${opSlct.action}\" \"${opSlct.idNext}\"]";
+    return "[\"${opSlct.text}\", \"${opSlct.action}\", \"${opSlct.idNext}\"]";
   }
 
   @override
