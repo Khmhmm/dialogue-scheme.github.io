@@ -65,9 +65,9 @@ class _GridWidgetState extends State<GridWidget> {
         }
         var matchingNextBlock = widget.blocks.where((b) => b.id == widget.blocks[i].next).toList();
         if (widget.blocks[i].ty == 1) {
-          print("Search for ${widget.blocks[i].ifs.length}");
+          // print("Search for ${widget.blocks[i].ifs.length}");
           for(final selector in widget.blocks[i].ifs) {
-            print("Search for ${selector.idNext}");
+            // print("Search for ${selector.idNext}");
             if (selector.idNext != "") {
               final additionalBlocks = widget.blocks.where((b) => b.id == selector.idNext).toList();
               matchingNextBlock = [...matchingNextBlock, ...additionalBlocks];

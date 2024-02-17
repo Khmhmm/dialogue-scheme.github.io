@@ -28,15 +28,19 @@ class Jsonifier extends StatelessWidget {
       buf += "\n    \"text\": \"${b.text}\",";
       if (b.ty == 1) {
         buf += "\n    \"if\": [";
-        for(final ifSlct in b.ifs) {
-          buf += "\n    ${describeIfSelector(ifSlct)}";
+        for(int j=0; j<b.ifs.length; j++) {
+          final ifSlct = b.ifs[j];
+          buf += "\n      ${describeIfSelector(ifSlct)}";
+          buf += (j < b.ifs.length - 1)? "," : "";
         }
         buf += "\n    ],";
       }
       if (b.ty == 2) {
         buf += "\n    \"options\": [";
-        for(final opSlct in b.options) {
-          buf += "\n    ${describeOptionsSelector(opSlct)}";
+        for(int j=0; j<b.options.length; j++) {
+          final opSlct = b.options[j];
+          buf += "\n      ${describeOptionsSelector(opSlct)}";
+          buf += (j < b.options.length - 1)? "," : "";
         }
         buf += "\n    ],";
       }
