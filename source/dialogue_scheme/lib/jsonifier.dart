@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlighter/flutter_highlighter.dart';
+import 'package:flutter_highlighter/themes/dark.dart';
+import 'package:flutter_highlighter/themes/far.dart';
+import 'package:flutter_highlighter/themes/github-gist.dart';
 import 'package:flutter_highlighter/themes/github.dart';
 
 import 'package:dialogue_scheme/block.dart';
+import 'package:flutter_highlighter/themes/vs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Jsonifier extends StatelessWidget {
   Jsonifier(this.blocks) {
@@ -61,53 +66,71 @@ class Jsonifier extends StatelessWidget {
     return "[\"${opSlct.text}\", \"${opSlct.action}\", \"${opSlct.idNext}\"]";
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(width: MediaQuery.of(context).size.width * 0.25),
-        Container(
-          width: MediaQuery.of(context).size.width * 0.5,
-          height: MediaQuery.of(context).size.height * 0.87,
-          child: SingleChildScrollView(
-            child: HighlightView(
-              json,
-              language: 'json',
-              theme: githubTheme,
-              padding: const EdgeInsets.all(8),
-              textStyle: TextStyle(fontSize: 20),
+  Widget buildInner(BuildContext context, bool isDarkTheme) {
+    return Container(
+      color: isDarkTheme? Color.fromARGB(255, 58, 58, 58) : Colors.white,
+      child: Row(
+        children: [
+          SizedBox(width: MediaQuery.of(context).size.width * 0.25),
+          Container(
+            width: MediaQuery.of(context).size.width * 0.5,
+            height: MediaQuery.of(context).size.height * 0.87,
+            color: isDarkTheme? Color.fromARGB(255, 58, 58, 58) : Colors.white,
+            child: SingleChildScrollView(
+              child: HighlightView(
+                json,
+                language: 'json',
+                theme: isDarkTheme? darkTheme : githubTheme,
+                padding: const EdgeInsets.all(8),
+                textStyle: TextStyle(fontSize: 20, color: isDarkTheme? const Color.fromARGB(255, 221, 221, 221) : Colors.black),
+              ),
             ),
           ),
-        ),
-        Container(
-          alignment: Alignment.topLeft,
-          padding: EdgeInsets.only(top: 32, left: 16),
-          color: Colors.transparent,
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.only(left: 1, top: 1, bottom: 1, right: 1),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  color: Color(0x33D3BBFF),
-                ),
-                child: IconButton(
-                  color: Colors.transparent,
-                  hoverColor: Theme.of(context).colorScheme.inversePrimary,
-                  tooltip: "Copy",
-                  onPressed: () { Clipboard.setData(ClipboardData(text: this.json)).then((_){}); },
-                  icon: Icon(
-                    Icons.content_copy,
-                    size: 32,
-                    color: Colors.black,
+          Container(
+            alignment: Alignment.topLeft,
+            padding: EdgeInsets.only(top: 32, left: 16),
+            color: Colors.transparent,
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(left: 1, top: 1, bottom: 1, right: 1),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    color: Color(0x33D3BBFF),
+                  ),
+                  child: IconButton(
+                    color: Colors.transparent,
+                    hoverColor: Theme.of(context).colorScheme.inversePrimary,
+                    tooltip: "Copy",
+                    onPressed: () { Clipboard.setData(ClipboardData(text: this.json)).then((_){}); },
+                    icon: Icon(
+                      Icons.content_copy,
+                      size: 32,
+                      color: isDarkTheme? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 16),
-            ],
+                SizedBox(height: 16),
+              ],
+            ),
           ),
-        ),
-      ]
+        ]
+      )
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: SharedPreferences.getInstance(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          // TODO: move to prefs_utils.dart
+          return buildInner(context, snapshot.data!.getBool("darkTheme") ?? false);
+        } else {
+          return const Center(child: Text('Error while loading preferences...')); 
+        }
+      },
     );
   }
 }

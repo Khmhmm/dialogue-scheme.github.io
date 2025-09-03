@@ -8,3 +8,9 @@ If you want to run it from src, install chrome (it is better to prefer package m
 ```
 flutter run -d chrome
 ```
+
+or Win-special
+
+```
+flutter run -d edge
+```

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:dialogue_scheme/block.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class GridWidget extends StatefulWidget {
@@ -53,8 +54,7 @@ class _GridWidgetState extends State<GridWidget> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildInner(BuildContext context, bool isDarkTheme) {
     final screenSize = MediaQuery.of(context).size;
 
     List<Widget> lines = [];
@@ -122,7 +122,7 @@ class _GridWidgetState extends State<GridWidget> {
                 Center(
                   child: CustomPaint(
                     size: Size(screenSize.height * 5, screenSize.width * 5), //Specify the size of the canvas
-                    painter: GridPainter(),
+                    painter: GridPainter(isDarkTheme),
                   ),
                 ),
                 ...lines,
@@ -131,17 +131,49 @@ class _GridWidgetState extends State<GridWidget> {
             ),
           ),
         ),
-        Row(children: [
-          Align(alignment: Alignment.bottomLeft, child: Text("  x${zoom.toInt()} (${widget.mousePos.dx.toInt()}; ${widget.mousePos.dy.toInt()})")),
-          Spacer(),
-          FloatingActionButton(
-            onPressed: widget.addBlock,
-            tooltip: 'Add',
-            child: const Icon(Icons.add),
+        Opacity(
+          opacity: 0.8,
+          child: Container(
+            color: isDarkTheme? Colors.black : Colors.white,
+            child: Row(children: [
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  "  x${zoom.toStringAsPrecision(2)} (${widget.mousePos.dx.toInt()}; ${widget.mousePos.dy.toInt()})",
+                  style: TextStyle(color: isDarkTheme? Colors.white : Colors.black),)
+              ),
+              Spacer(),
+              FloatingActionButton(
+                onPressed: widget.addBlock,
+                tooltip: 'Add',
+                backgroundColor: isDarkTheme? Theme.of(context).colorScheme.inversePrimary : Theme.of(context).colorScheme.primary,
+                child: Icon(
+                  Icons.add,
+                  color: isDarkTheme? Colors.white : Colors.black,
+                ),
+              ),
+              SizedBox(width: 16),
+            ]),
           ),
-          SizedBox(width: 16),
-        ]),
+        ),
       ]),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final prefs = SharedPreferences.getInstance();
+
+    return FutureBuilder(
+      future: SharedPreferences.getInstance(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          // TODO: move to prefs_utils.dart
+          return buildInner(context, snapshot.data!.getBool("darkTheme") ?? false);
+        } else {
+          return const Center(child: Text('Error while loading preferences...'));
+        }
+      },
     );
   }
 }
@@ -149,6 +181,11 @@ class _GridWidgetState extends State<GridWidget> {
 
 
 class GridPainter extends CustomPainter {
+  GridPainter(bool? darkTheme) {
+    isDarkTheme = darkTheme ?? false;
+  }
+
+  bool isDarkTheme = false;
   @override
   void paint(Canvas canvas, Size size) {
     double eWidth = size.width / 60;
@@ -158,13 +195,13 @@ class GridPainter extends CustomPainter {
     var paint = Paint()
       ..isAntiAlias = true
       ..style = PaintingStyle.fill //filling
-      ..color = Color(0xfff6f6f6); //Background of yellow paper
+      ..color = isDarkTheme? Color.fromARGB(255, 58, 58, 58) : Color.fromARGB(255, 255, 255, 255); //Background of yellow paper
     canvas.drawRect(Offset.zero & size, paint);
 
     //Grid style
     paint
       ..style = PaintingStyle.stroke //line
-      ..color = Color(0xffe1e9f0)
+      ..color = isDarkTheme? Color.fromARGB(255, 44, 44, 44) : Color(0xffe1e9f0)
       ..strokeWidth = 1.1;
 
     for (int i = 0; i <= 150; ++i) {

@@ -1,45 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_highlighter/themes/atom-one-dark.dart';
+import 'package:flutter_highlighter/themes/dark.dart';
+import 'package:flutter_highlighter/themes/dracula.dart';
+import 'package:flutter_highlighter/themes/idea.dart';
+import 'package:flutter_highlighter/themes/monokai.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:flutter_highlighter/flutter_highlighter.dart';
 import 'package:flutter_highlighter/themes/github.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AboutWidget extends StatelessWidget {
   AboutWidget();
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: 8),
-        Center(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.87,
-            width: MediaQuery.of(context).size.width * 0.5,
-            child: Markdown(
-              data: README,
-              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
-              extensionSet: md.ExtensionSet(
-                md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                <md.InlineSyntax>[
-                  md.EmojiSyntax(),
-                  ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
-                ],
+  Widget buildInner(BuildContext context, bool isDarkTheme) {
+    return Container(
+      color: isDarkTheme? Color.fromARGB(255, 95, 95, 95) : Colors.white,
+      child: Column(
+        children: [
+          SizedBox(height: 8),
+          Center(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.87,
+              width: MediaQuery.of(context).size.width * 0.5,
+              child: Markdown(
+                data: README,
+                styleSheet: isDarkTheme? 
+                  MarkdownStyleSheet.fromTheme(Theme.of(context)) :
+                  MarkdownStyleSheet.fromTheme(Theme.of(context)),
+                extensionSet: md.ExtensionSet(
+                  md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                  <md.InlineSyntax>[
+                    md.EmojiSyntax(),
+                    ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                  ],
+                ),
+                builders: {
+                  'code': CodeElementBuilder(isDarkTheme),
+                }
               ),
-              builders: {
-                'code': CodeElementBuilder(),
-              }
             ),
           ),
-        ),
-      ]
+        ]
+      )
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: SharedPreferences.getInstance(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return buildInner(context, snapshot.data!.getBool("darkTheme") ?? false);
+        } else {
+          return const Center(child: Text('Error while loading preferences...')); 
+        }
+      },
+    );
+  }
+    
 }
 
 
 
 class CodeElementBuilder extends MarkdownElementBuilder {
+  CodeElementBuilder(bool darkTheme) {
+    isDarkTheme = darkTheme;
+  }
+
+  bool isDarkTheme = false;
+
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     var language = 'json';
@@ -54,7 +85,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
       child: HighlightView(
         element.textContent,
         language: language,
-        theme: githubTheme,
+        theme: isDarkTheme? darkTheme : githubTheme,
         padding: const EdgeInsets.all(8),
         textStyle: preferredStyle,
       ),
@@ -62,7 +93,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
   }
 }
 
-final String README = r'''
+const String README = r'''
 ## Dialogues system
 
 ### Base info

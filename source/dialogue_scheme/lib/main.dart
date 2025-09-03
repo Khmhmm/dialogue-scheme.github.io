@@ -3,6 +3,7 @@ import 'package:dialogue_scheme/grid.dart';
 import 'package:dialogue_scheme/jsonifier.dart';
 import 'package:dialogue_scheme/about.dart';
 import 'package:dialogue_scheme/block.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,6 +51,24 @@ class _MyHomePageState extends State<MyHomePage> {
       // centerTitle: true,
       actions: [
         Row(children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                SharedPreferences.getInstance()
+                  .then((prefs) {
+                    // TODO: move to prefs_utils.dart
+                    bool darkTheme = prefs.getBool("darkTheme") ?? false;
+                    prefs.setBool("darkTheme", !darkTheme);
+                  });
+              });
+            },
+            child: Icon(
+              Icons.dark_mode,
+              color: Theme.of(context).colorScheme.primary,
+              size: 32,
+            ),
+          ),
+          SizedBox(width: 16),
           GestureDetector(
             onTap: () {
               setState(() {
