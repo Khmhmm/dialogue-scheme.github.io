@@ -6,11 +6,12 @@ import 'package:crypto/crypto.dart';
 enum ColorTag { theme, red, yellow, green, blue, pink }
 
 class DataBlock extends StatefulWidget {
-  DataBlock({required this.x, required this.y, required this.i});
+  DataBlock({required this.x, required this.y, required this.i, this.isDarkTheme=false});
 
   double x;
   double y;
   int i;
+  bool isDarkTheme;
 
   // values
   String id = "";
@@ -46,9 +47,28 @@ class _DataBlockState extends State<DataBlock> {
   void initState() {
     super.initState();
     _tyTextCtrl.value = TextEditingValue(text: widget.ty.toString());
+
     _speakerTextCtrl.value = TextEditingValue(text: widget.speaker);
+    _speakerTextCtrl.addListener(() => _handleTextSelection(_speakerTextCtrl));
+
     _textTextCtrl.value = TextEditingValue(text: widget.text);
+    _textTextCtrl.addListener(() => _handleTextSelection(_textTextCtrl));
+
     _nextTextCtrl.value = TextEditingValue(text: widget.next);
+    _nextTextCtrl.addListener(() => _handleTextSelection(_nextTextCtrl));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _speakerTextCtrl.removeListener(() => _handleTextSelection(_speakerTextCtrl));
+    _speakerTextCtrl.dispose();
+    
+    _textTextCtrl.removeListener(() => _handleTextSelection(_textTextCtrl));
+    _textTextCtrl.dispose();
+    
+    _nextTextCtrl.removeListener(() => _handleTextSelection(_nextTextCtrl));
+    _nextTextCtrl.dispose();
   }
 
 
@@ -228,10 +248,10 @@ class _DataBlockState extends State<DataBlock> {
           updateCoords(widget.x + details.delta.dx, widget.y + details.delta.dy);
         },
         child: Opacity(
-          opacity: 0.7,
+          opacity: widget.isDarkTheme? 0.9 : 0.7,
           child: Container(
             width: 130,
-            padding: EdgeInsets.symmetric(horizontal: 7, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 9),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(9),
@@ -296,26 +316,35 @@ class _DataBlockState extends State<DataBlock> {
             child: TextField(
               controller: textCtrl,
               onChanged: onEdit,
+              onTap: () => setState((){}),
               maxLines: 1,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(
                   gapPadding: 1.0,
                 ),
               ),
-              textAlignVertical: TextAlignVertical(y: 0.6),
+              textAlignVertical: const TextAlignVertical(y: 0.6),
               style: stl,
             ),
           ),
         ),
-        SizedBox(width: 4),
+        const SizedBox(width: 4),
         Align(
           alignment: Alignment.centerLeft,
-          child: SizedBox(width: 70, child: Text(textCtrl.value.text, style: stl, textAlign: TextAlign.left, overflow: TextOverflow.clip)),
+          child: SizedBox(
+            width: 70,
+            child: RichText(
+              text: TextSpan(
+                children: textSpansWithCursor(textCtrl.value.text, textCtrl.selection.baseOffset),
+                style: stl,
+              ),
+            ),
+          ),
         ),
         Spacer(),
         GestureDetector(
           onTap: () => Clipboard.setData(ClipboardData(text: textCtrl.value.text)).then((_){}),
-          child: Icon(
+          child: const Icon(
             Icons.content_copy,
             size: 7,
             color: Colors.white,
@@ -408,6 +437,31 @@ class _DataBlockState extends State<DataBlock> {
         children: rows,
       ),
     );
+  }
+
+  List<TextSpan> textSpansWithCursor(String text, int cursorOffset) {
+    if (text == "" || cursorOffset < 0 || cursorOffset > text.length) {
+      return [TextSpan(text: text)];
+    } else if (text.length == 1) {
+      return (cursorOffset == 0)?
+        [cursorTextSpan, TextSpan(text: text)] :
+        [TextSpan(text: text), cursorTextSpan];
+    }
+
+    return [
+      TextSpan(text: text.substring(0, cursorOffset)),
+      cursorTextSpan,
+      TextSpan(text: text.substring(cursorOffset)),
+    ];
+  }
+
+  TextSpan get cursorTextSpan => const TextSpan(text: '|', style: TextStyle(color: Colors.black));
+
+  void _handleTextSelection(TextEditingController controller) {
+    final selection = controller.selection;
+    if (selection.isValid && selection.baseOffset != 0) {
+      setState((){});
+    }
   }
 }
 

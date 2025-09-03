@@ -19,13 +19,14 @@ class GridWidget extends StatefulWidget {
 
   void Function(List<DataBlock>) updBlocksCb;
 
-  void addBlock() {
+  void addBlock([bool isDarkTheme=false]) {
     print(currentOffsetFromTopLeftConner);
     this.blocks.add(
       DataBlock(
         x: math.min(currentOffsetFromTopLeftConner.dx / 1.5, 1800) + 5,
         y: math.min(currentOffsetFromTopLeftConner.dy / (zoom * 2), 1000) + 5,
-        i: this.blocks.length
+        i: this.blocks.length,
+        isDarkTheme: isDarkTheme,
       )
     );
   }
@@ -45,11 +46,11 @@ class _GridWidgetState extends State<GridWidget> {
     });
   }
 
-  Widget drawLine(Offset p1, Offset p2, Size screenSize) {
+  Widget drawLine(Offset p1, Offset p2, Size screenSize, [bool isDarkTheme=false]) {
     return Center(
       child: CustomPaint(
         size: Size(screenSize.height * 5, screenSize.width * 5),
-        painter: LinePainter(p1: p1, p2: p2),
+        painter: LinePainter(p1: p1, p2: p2, isDarkTheme: isDarkTheme),
       ),
     );
   }
@@ -87,6 +88,7 @@ class _GridWidgetState extends State<GridWidget> {
               Offset(widget.blocks[i].x + 130, widget.blocks[i].y + 12),
               Offset(mblock.x, mblock.y + 12),
               screenSize,
+              isDarkTheme
             )
           );
         }
@@ -144,7 +146,7 @@ class _GridWidgetState extends State<GridWidget> {
               ),
               Spacer(),
               FloatingActionButton(
-                onPressed: widget.addBlock,
+                onPressed: () => widget.addBlock(isDarkTheme),
                 tooltip: 'Add',
                 backgroundColor: isDarkTheme? Theme.of(context).colorScheme.inversePrimary : Theme.of(context).colorScheme.primary,
                 child: Icon(
@@ -223,15 +225,16 @@ class GridPainter extends CustomPainter {
 }
 
 class LinePainter extends CustomPainter {
-  LinePainter({required this.p1, required this.p2});
+  LinePainter({required this.p1, required this.p2, this.isDarkTheme=false});
 
   Offset p1;
   Offset p2;
+  bool isDarkTheme;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Color(0x55000000)
+      ..color = isDarkTheme? Color.fromARGB(143, 179, 178, 178) : Color(0x55000000)
       ..strokeWidth = 2;
     canvas.drawLine(p1, p2, paint);
   }
