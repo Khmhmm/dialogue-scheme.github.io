@@ -128,7 +128,7 @@ class Jsonifier extends StatelessWidget {
           // TODO: move to prefs_utils.dart
           return buildInner(context, snapshot.data!.getBool("darkTheme") ?? false);
         } else {
-          return const Center(child: Text('Error while loading preferences...')); 
+          return Container(color: Color.fromARGB(255, 95, 95, 95));
         }
       },
     );

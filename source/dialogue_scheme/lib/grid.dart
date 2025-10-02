@@ -8,10 +8,10 @@ class GridWidget extends StatefulWidget {
   GridWidget({required this.blocks, required this.updBlocksCb});
 
   List<DataBlock> blocks;
-  Offset mousePos = Offset(0.0, 0.0);
+  Offset mousePos = const Offset(0.0, 0.0);
   Offset getMousePos() { return mousePos; }
 
-  Offset currentOffsetFromTopLeftConner = Offset(0.0, 0.0);
+  Offset currentOffsetFromTopLeftConner = const Offset(0.0, 0.0);
   Offset getCurrentTopLeftOffset() { return currentOffsetFromTopLeftConner; }
 
   // only for adding blocks, causes bugs when used in grid things
@@ -144,7 +144,7 @@ class _GridWidgetState extends State<GridWidget> {
                   "  x${zoom.toStringAsPrecision(2)} (${widget.mousePos.dx.toInt()}; ${widget.mousePos.dy.toInt()})",
                   style: TextStyle(color: isDarkTheme? Colors.white : Colors.black),)
               ),
-              Spacer(),
+              const Spacer(),
               FloatingActionButton(
                 onPressed: () => widget.addBlock(isDarkTheme),
                 tooltip: 'Add',
@@ -154,7 +154,7 @@ class _GridWidgetState extends State<GridWidget> {
                   color: isDarkTheme? Colors.white : Colors.black,
                 ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.475),
             ]),
           ),
         ),
@@ -173,7 +173,7 @@ class _GridWidgetState extends State<GridWidget> {
           // TODO: move to prefs_utils.dart
           return buildInner(context, snapshot.data!.getBool("darkTheme") ?? false);
         } else {
-          return const Center(child: Text('Error while loading preferences...'));
+          return Container(color: Color.fromARGB(255, 95, 95, 95));
         }
       },
     );
@@ -197,13 +197,13 @@ class GridPainter extends CustomPainter {
     var paint = Paint()
       ..isAntiAlias = true
       ..style = PaintingStyle.fill //filling
-      ..color = isDarkTheme? Color.fromARGB(255, 58, 58, 58) : Color.fromARGB(255, 255, 255, 255); //Background of yellow paper
+      ..color = isDarkTheme? const Color.fromARGB(255, 58, 58, 58) : const Color.fromARGB(255, 255, 255, 255); //Background of yellow paper
     canvas.drawRect(Offset.zero & size, paint);
 
     //Grid style
     paint
       ..style = PaintingStyle.stroke //line
-      ..color = isDarkTheme? Color.fromARGB(255, 44, 44, 44) : Color(0xffe1e9f0)
+      ..color = isDarkTheme? const Color.fromARGB(255, 44, 44, 44) : const Color(0xffe1e9f0)
       ..strokeWidth = 1.1;
 
     for (int i = 0; i <= 150; ++i) {
@@ -234,7 +234,7 @@ class LinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = isDarkTheme? Color.fromARGB(143, 179, 178, 178) : Color(0x55000000)
+      ..color = isDarkTheme? const Color.fromARGB(143, 179, 178, 178) : const Color(0x55000000)
       ..strokeWidth = 2;
     canvas.drawLine(p1, p2, paint);
   }

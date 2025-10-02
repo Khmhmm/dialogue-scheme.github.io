@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
-enum ColorTag { theme, red, yellow, green, blue, pink }
+enum ColorTag { def, red, yellow, green, blue, pink }
 
 class DataBlock extends StatefulWidget {
   DataBlock({required this.x, required this.y, required this.i, this.isDarkTheme=false});
@@ -20,11 +20,19 @@ class DataBlock extends StatefulWidget {
   String text = "";
   String next = "";
 
+  final double defaultBlockWidth = 180.0;
+  final double wideBlockWidth = 220.0;
+  final double veryWideBlockWidth = 270.0;
+  final double ultraWideBlockWidth = 330.0;
+  final double elementHeight = 10.0;
+  final double fontSize = 8.0;
+
   List<IfSelector> ifs = [];
   List<OptionSelector> options = [];
 
   // appearance
-  ColorTag colorTag = ColorTag.theme;
+  ColorTag colorTag = ColorTag.def;
+  double blockWidth = 180.0; // same as defaultBlockWidth
 
   @override
   State<DataBlock> createState() => _DataBlockState();
@@ -33,10 +41,10 @@ class DataBlock extends StatefulWidget {
 class _DataBlockState extends State<DataBlock> {
   _DataBlockState();
 
-  TextEditingController _tyTextCtrl = TextEditingController();
-  TextEditingController _speakerTextCtrl = TextEditingController();
-  TextEditingController _textTextCtrl = TextEditingController();
-  TextEditingController _nextTextCtrl = TextEditingController();
+  final TextEditingController _tyTextCtrl = TextEditingController();
+  final TextEditingController _speakerTextCtrl = TextEditingController();
+  final TextEditingController _textTextCtrl = TextEditingController();
+  final TextEditingController _nextTextCtrl = TextEditingController();
   // TextEditingController _optionsTextCtrl = TextEditingController();
 
   String dropdownValue = "";
@@ -100,7 +108,7 @@ class _DataBlockState extends State<DataBlock> {
           (String? _) => setState(() { widget.ifs[i].condition = conditionCtrl.value.text; }),
           (String? _) => setState(() { widget.ifs[i].idNext = idNextCtrl.value.text; }),
         ],
-        MediaQuery.of(context).textScaleFactor
+        MediaQuery.of(context).textScaler.scale(14)
       );
       ifsInnerWidgets.add(inner);
     }
@@ -127,7 +135,7 @@ class _DataBlockState extends State<DataBlock> {
           (String? _) => setState(() { widget.options[i].action = actionCtrl.value.text; }),
           (String? _) => setState(() { widget.options[i].idNext = idNextCtrl.value.text; }),
         ],
-        MediaQuery.of(context).textScaleFactor
+        MediaQuery.of(context).textScaler.scale(1)
       );
       optionsInnerWidgets.add(inner);
     }
@@ -136,33 +144,24 @@ class _DataBlockState extends State<DataBlock> {
 
   Color getColor(BuildContext context) {
     switch (widget.colorTag) {
-      case ColorTag.theme:
-        return Theme.of(context).colorScheme.inversePrimary;
-        break;
+      case ColorTag.def:
+        return const Color.fromARGB(255, 64, 55, 73);
       case ColorTag.red:
-        return Color(0xffE4717A);
-        break;
+        return const Color(0xffE4717A);
       case ColorTag.yellow:
-        return Color(0xffEFA94A);
-        break;
+        return const Color(0xffEFA94A);
       case ColorTag.green:
-        return Color(0xffBEBD7F);
-        break;
+        return const Color(0xffBEBD7F);
       case ColorTag.blue:
-        return Color(0xff9ACEEB);
-        break;
+        return const Color(0xff9ACEEB);
       case ColorTag.pink:
-        return Color(0xffD8BFD8);
-        break;
-      default:
-        return Theme.of(context).colorScheme.inversePrimary;
-        break;
+        return const Color(0xffD8BFD8);
     }
   }
 
   void reselectColor(BuildContext context) {
     switch (widget.colorTag) {
-      case ColorTag.theme:
+      case ColorTag.def:
         setState(() {
           widget.colorTag = ColorTag.red;
         });
@@ -189,14 +188,25 @@ class _DataBlockState extends State<DataBlock> {
         break;
       case ColorTag.pink:
         setState(() {
-          widget.colorTag = ColorTag.theme;
+          widget.colorTag = ColorTag.def;
         });
         break;
-      default:
-        setState(() {
-          widget.colorTag = ColorTag.green;
-        });
-        break;
+    }
+  }
+
+  void reselectWidth(BuildContext context) {
+    if (widget.blockWidth == widget.defaultBlockWidth) {
+      // default -> wide
+      setState(() => widget.blockWidth = widget.wideBlockWidth);
+    } else if (widget.blockWidth == widget.wideBlockWidth) {
+      // wide -> very wide
+      setState(() => widget.blockWidth = widget.veryWideBlockWidth);
+    } else if (widget.blockWidth == widget.veryWideBlockWidth) {
+      // very wide -> ultra wide
+      setState(() => widget.blockWidth = widget.ultraWideBlockWidth);
+    } else {
+      // default | ultra wide -> default
+      setState(() => widget.blockWidth = widget.defaultBlockWidth);
     }
   }
 
@@ -204,19 +214,14 @@ class _DataBlockState extends State<DataBlock> {
     switch(tyId) {
       case "-1":
         return "final replics";
-        break;
       case "0":
         return "base replics";
-        break;
       case "1":
         return "if-then replics";
-        break;
       case "2":
         return "select option";
-        break;
       default:
         return "base replics";
-        break;
     }
   }
 
@@ -229,16 +234,16 @@ class _DataBlockState extends State<DataBlock> {
     }
 
     clr = getColor(context);
-    stl = TextStyle(fontSize: 5, color: Colors.white);
+    stl = TextStyle(fontSize: widget.fontSize, color: Colors.white);
 
     List<Widget> ifsInnerWidgets = constructIfsInnerWidgets(context);
     List<Widget> optionsInnerWidgets = consctructOptionsInnerWidgets(context);
 
-    void Function(String?) defaultOnEdit = (String? _) {
+    void defaultOnEdit(String? _) {
       setState(() {
         updateFields();
       });
-    };
+    }
 
     return Positioned(
       left: widget.x,
@@ -250,20 +255,23 @@ class _DataBlockState extends State<DataBlock> {
         child: Opacity(
           opacity: widget.isDarkTheme? 0.9 : 0.7,
           child: Container(
-            width: 130,
+            width: widget.blockWidth,
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 9),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(9),
-              // color: Theme.of(context).colorScheme.primaryContainer,
               color: clr,
             ),
             child: Column(
               children: [
                 buildStaticRow("id", widget.id, () { Clipboard.setData(ClipboardData(text: widget.id)).then((_){}); }),
+                const SizedBox(height: 2.0),
                 buildDropTyRow("ty", _tyTextCtrl, ["-1", "0", "1", "2"], selectTyDescription),
-                buildPropertyRow("speaker", _speakerTextCtrl, MediaQuery.of(context).textScaleFactor, defaultOnEdit),
-                buildPropertyRow("text", _textTextCtrl, MediaQuery.of(context).textScaleFactor, defaultOnEdit),
+                const SizedBox(height: 2.0),
+                buildPropertyRow("speaker", _speakerTextCtrl, MediaQuery.of(context).textScaler.scale(1), defaultOnEdit),
+                const SizedBox(height: 2.0),
+                buildPropertyRow("text", _textTextCtrl, MediaQuery.of(context).textScaler.scale(1), defaultOnEdit),
+                const SizedBox(height: 2.0),
 
                 (widget.ty == 1)? buildResizableRow(
                   "if", () => setState(() { widget.ifs.add(IfSelector(condition: "", idNext: "")); }),
@@ -275,15 +283,29 @@ class _DataBlockState extends State<DataBlock> {
                 ) : Container(),
                 ...optionsInnerWidgets,
 
-                buildPropertyRow("next", _nextTextCtrl, MediaQuery.of(context).textScaleFactor, defaultOnEdit),
-                SizedBox(height: 4),
-                GestureDetector(
-                  onTap: () => reselectColor(context),
-                  child: Icon(
-                    Icons.blur_circular,
-                    color: Colors.white,
-                    size: 7,
-                  ),
+                buildPropertyRow("next", _nextTextCtrl, MediaQuery.of(context).textScaler.scale(1), defaultOnEdit),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => reselectColor(context),
+                      child: Icon(
+                        Icons.blur_circular,
+                        color: Colors.white,
+                        size: widget.elementHeight,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => reselectWidth(context),
+                      child: Icon(
+                        Icons.pinch_outlined,
+                        color: Colors.white,
+                        size: widget.elementHeight,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -306,13 +328,14 @@ class _DataBlockState extends State<DataBlock> {
 
   Widget buildPropertyRow(String fieldName, TextEditingController textCtrl, double factor, void Function(String?) onEdit) {
     return SizedBox(
-      width: 130 - 14,
+      width: widget.blockWidth - 14,
       // height: 7 * factor,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
+        const SizedBox(height: 4),
         Align(alignment: Alignment.centerLeft, child: SizedBox(
             width: 4,
-            height: 7 * factor,
+            height: widget.elementHeight,
             child: TextField(
               controller: textCtrl,
               onChanged: onEdit,
@@ -328,11 +351,11 @@ class _DataBlockState extends State<DataBlock> {
             ),
           ),
         ),
-        const SizedBox(width: 4),
+        const Spacer(),
         Align(
           alignment: Alignment.centerLeft,
           child: SizedBox(
-            width: 70,
+            width: widget.blockWidth - fieldName.length * 2.0 - 42 - widget.elementHeight * 2.0,
             child: RichText(
               text: TextSpan(
                 children: textSpansWithCursor(textCtrl.value.text, textCtrl.selection.baseOffset),
@@ -341,12 +364,26 @@ class _DataBlockState extends State<DataBlock> {
             ),
           ),
         ),
-        Spacer(),
+        const Spacer(),
         GestureDetector(
           onTap: () => Clipboard.setData(ClipboardData(text: textCtrl.value.text)).then((_){}),
-          child: const Icon(
+          child: Icon(
             Icons.content_copy,
-            size: 7,
+            size: widget.elementHeight,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 2),
+        GestureDetector(
+          onTap: () => Clipboard.getData("text/plain").then(
+            (data) => setState(() { 
+              textCtrl.text = data?.text ?? "";
+              onEdit(data?.text);
+            }),
+          ),
+          child: Icon(
+            Icons.content_paste_go,
+            size: widget.elementHeight,
             color: Colors.white,
           ),
         ),
@@ -357,14 +394,14 @@ class _DataBlockState extends State<DataBlock> {
   Widget buildStaticRow(String fieldName, String value, VoidCallback cb) {
     return Row(children: [
       Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
-      Spacer(),
+      const Spacer(),
       Align(alignment: Alignment.centerLeft, child: Text(value, style: stl, textAlign: TextAlign.left, overflow: TextOverflow.clip),),
-      SizedBox(width: 4),
+      const Spacer(),
       GestureDetector(
         onTap: cb,
         child: Icon(
           Icons.content_copy,
-          size: 7,
+          size: widget.elementHeight,
           color: Colors.white,
         ),
       ),
@@ -373,21 +410,21 @@ class _DataBlockState extends State<DataBlock> {
 
   Widget buildDropTyRow(String fieldName, TextEditingController textCtrl, List<String> items, String Function(String) converter) {
     return SizedBox(
-      width: 130 - 14,
-      height: 7,
+      width: widget.blockWidth - 14,
+      height: widget.elementHeight,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
-        SizedBox(width: 8),
-        Align(alignment: Alignment.centerLeft, child: Text(textCtrl.value.text ?? "0", style: stl, textAlign: TextAlign.left, overflow: TextOverflow.clip),),
-        Spacer(),
+        const SizedBox(width: 8),
+        Align(alignment: Alignment.centerLeft, child: Text(textCtrl.value.text, style: stl, textAlign: TextAlign.left, overflow: TextOverflow.clip),),
+        const Spacer(),
         Container(
-          width: 20,
+          width: 30,
           alignment: Alignment.centerRight,
           child: DropdownButton<String>(
             value: textCtrl.value.text,
-            icon: Icon(Icons.arrow_downward, color: Colors.white, size: 7),
+            icon: Icon(Icons.arrow_downward, color: Colors.white, size: widget.elementHeight),
             style: stl,
-            isExpanded: false,
+            isExpanded: true,
             elevation: 16,
             onChanged: (String? value) {
               setState(() {
@@ -398,7 +435,7 @@ class _DataBlockState extends State<DataBlock> {
             items: items.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
-                child: Text(converter(value), style: TextStyle(fontSize: 10, color: Colors.black)),
+                child: Text(converter(value), style: const TextStyle(fontSize: 12, color: Colors.black)),
               );
             }).toList(),
             selectedItemBuilder: (context) => [],
@@ -410,14 +447,14 @@ class _DataBlockState extends State<DataBlock> {
 
   Widget buildResizableRow(String fieldName, VoidCallback resizeCb) {
     return SizedBox(
-      width: 130 - 14,
-      height: 7,
+      width: widget.blockWidth - 14,
+      height: widget.elementHeight,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
-        Spacer(),
+        const Spacer(),
         GestureDetector(
           onTap: resizeCb,
-          child: Icon(Icons.add, size: 7, color: Colors.white),
+          child: const Icon(Icons.add, size: 7, color: Colors.white),
         ),
       ]),
     );
@@ -425,7 +462,7 @@ class _DataBlockState extends State<DataBlock> {
 
   Widget buildInnerFields(List<String> fieldNames, List<TextEditingController> controllers, List<void Function(String?)> onEdits, double factor) {
     List<Widget> rows = [];
-    rows.add(SizedBox(width: 125 - 14, height: 2, child: Divider(color: Colors.black, height: 2)));
+    rows.add(const SizedBox(width: 125 - 14, height: 2, child: Divider(color: Colors.black, height: 2)));
     for(int i=0; i<controllers.length; i++) {
       rows.add(buildPropertyRow(fieldNames[i], controllers[i], factor, onEdits[i]));
     }
