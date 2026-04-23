@@ -25,11 +25,20 @@ class GridWidget extends StatefulWidget {
       DataBlock(
         x: math.min(currentOffsetFromTopLeftConner.dx / 1.5, 1800) + 5,
         y: math.min(currentOffsetFromTopLeftConner.dy / (zoom * 2), 1000) + 5,
-        i: this.blocks.length,
+        i: DateTime.now().difference(DateTime.fromMicrosecondsSinceEpoch(0)).inMilliseconds,
+        deleteCallback: this.removeBlock,
         isDarkTheme: isDarkTheme,
       )
     );
   }
+
+  void removeBlock(int innerId) {
+    List<DataBlock> matchingBlock = this.blocks.where((block) => block.i == innerId).toList();
+    if (matchingBlock.length > 0) {
+      this.blocks.remove(matchingBlock[0]);
+    }
+  }
+
   void setBlocks(List<DataBlock> blocks) { this.blocks = blocks; }
 
   @override
@@ -56,7 +65,7 @@ class _GridWidgetState extends State<GridWidget> {
   }
 
   Widget buildInner(BuildContext context, bool isDarkTheme) {
-    final screenSize = MediaQuery.of(context).size;
+    final Size screenSize = MediaQuery.of(context).size;
 
     List<Widget> lines = [];
     if (widget.blocks.length >= 2) {
@@ -85,7 +94,7 @@ class _GridWidgetState extends State<GridWidget> {
         for(final mblock in matchingNextBlock) {
           lines.add(
             drawLine(
-              Offset(widget.blocks[i].x + 130, widget.blocks[i].y + 12),
+              Offset(widget.blocks[i].x + widget.blocks[i].blockWidth, widget.blocks[i].y + 12),
               Offset(mblock.x, mblock.y + 12),
               screenSize,
               isDarkTheme
@@ -173,7 +182,7 @@ class _GridWidgetState extends State<GridWidget> {
           // TODO: move to prefs_utils.dart
           return buildInner(context, snapshot.data!.getBool("darkTheme") ?? false);
         } else {
-          return Container(color: Color.fromARGB(255, 95, 95, 95));
+          return Container(color: Color.fromARGB(255, 58, 58, 58));
         }
       },
     );

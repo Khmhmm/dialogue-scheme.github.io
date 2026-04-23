@@ -6,12 +6,13 @@ import 'package:crypto/crypto.dart';
 enum ColorTag { def, red, yellow, green, blue, pink }
 
 class DataBlock extends StatefulWidget {
-  DataBlock({required this.x, required this.y, required this.i, this.isDarkTheme=false});
+  DataBlock({required this.x, required this.y, required this.i, required this.deleteCallback, this.isDarkTheme=false});
 
   double x;
   double y;
   int i;
   bool isDarkTheme;
+  void Function(int) deleteCallback;
 
   // values
   String id = "";
@@ -27,6 +28,7 @@ class DataBlock extends StatefulWidget {
   final double elementHeight = 10.0;
   final double fontSize = 8.0;
 
+  List<Setter> setters = [];
   List<IfSelector> ifs = [];
   List<OptionSelector> options = [];
 
@@ -91,6 +93,29 @@ class _DataBlockState extends State<DataBlock> {
     return md5.convert(utf8.encode(DateTime.now().toIso8601String())).toString();
   }
 
+  List<Widget> constructSetterInnerWidgets(BuildContext context) {
+    List<Widget> setterInnerWidgets = [];
+    for(int i=0; i<widget.setters.length; i++) {
+      TextEditingController nameCtrl = TextEditingController(text: widget.setters[i].name)..text = widget.setters[i].name
+        ..selection =  TextSelection.collapsed(offset: widget.setters[i].name.length);
+      TextEditingController valueCtrl = TextEditingController(text: widget.setters[i].value)..text = widget.setters[i].value
+        ..selection = TextSelection.collapsed(offset: widget.setters[i].value.length);
+
+      Widget inner = buildInnerFields(
+        [" name", " value"],
+        [nameCtrl, valueCtrl],
+        [
+          (String? _) => setState(() { widget.setters[i].name = nameCtrl.value.text; }),
+          (String? _) => setState(() { widget.setters[i].value = valueCtrl.value.text; }),
+        ],
+        MediaQuery.of(context).textScaler.scale(14)
+      );
+      setterInnerWidgets.add(inner);
+    }
+
+    return setterInnerWidgets;
+  }
+
   List<Widget> constructIfsInnerWidgets(BuildContext context) {
     List<Widget> ifsInnerWidgets = [];
     for(int i=0; i<widget.ifs.length; i++) {
@@ -102,7 +127,7 @@ class _DataBlockState extends State<DataBlock> {
         ..selection = TextSelection.collapsed(offset: widget.ifs[i].idNext.length);
 
       Widget inner = buildInnerFields(
-        ["condition", "next"],
+        [" condition", " next"],
         [conditionCtrl, idNextCtrl],
         [
           (String? _) => setState(() { widget.ifs[i].condition = conditionCtrl.value.text; }),
@@ -128,7 +153,7 @@ class _DataBlockState extends State<DataBlock> {
         ..selection = TextSelection.collapsed(offset: widget.options[i].idNext.length);
 
       Widget inner = buildInnerFields(
-        ["text", "action", "next"],
+        [" text", " action", " next"],
         [textCtrl, actionCtrl, idNextCtrl],
         [
           (String? _) => setState(() { widget.options[i].text = textCtrl.value.text; }),
@@ -147,15 +172,15 @@ class _DataBlockState extends State<DataBlock> {
       case ColorTag.def:
         return const Color.fromARGB(255, 64, 55, 73);
       case ColorTag.red:
-        return const Color(0xffE4717A);
+        return const Color(0xff992424);
       case ColorTag.yellow:
-        return const Color(0xffEFA94A);
+        return const Color(0xff674300);
       case ColorTag.green:
-        return const Color(0xffBEBD7F);
+        return const Color(0xff73723a);
       case ColorTag.blue:
-        return const Color(0xff9ACEEB);
+        return const Color(0xff2e607b);
       case ColorTag.pink:
-        return const Color(0xffD8BFD8);
+        return const Color(0xff966e96);
     }
   }
 
@@ -236,6 +261,7 @@ class _DataBlockState extends State<DataBlock> {
     clr = getColor(context);
     stl = TextStyle(fontSize: widget.fontSize, color: Colors.white);
 
+    List<Widget> setterInnerWidgets = constructSetterInnerWidgets(context);
     List<Widget> ifsInnerWidgets = constructIfsInnerWidgets(context);
     List<Widget> optionsInnerWidgets = consctructOptionsInnerWidgets(context);
 
@@ -268,18 +294,29 @@ class _DataBlockState extends State<DataBlock> {
                 const SizedBox(height: 2.0),
                 buildDropTyRow("ty", _tyTextCtrl, ["-1", "0", "1", "2"], selectTyDescription),
                 const SizedBox(height: 2.0),
+                buildResizableRow(
+                  "setters",
+                  () => setState(() { widget.setters.add(Setter(name: "", value: "")); }),
+                  () => setState(() { if(widget.setters.length > 0) widget.setters.removeAt(widget.setters.length - 1); })
+                ),
+                ...setterInnerWidgets,
+                const SizedBox(height: 2.0),
                 buildPropertyRow("speaker", _speakerTextCtrl, MediaQuery.of(context).textScaler.scale(1), defaultOnEdit),
                 const SizedBox(height: 2.0),
                 buildPropertyRow("text", _textTextCtrl, MediaQuery.of(context).textScaler.scale(1), defaultOnEdit),
                 const SizedBox(height: 2.0),
 
                 (widget.ty == 1)? buildResizableRow(
-                  "if", () => setState(() { widget.ifs.add(IfSelector(condition: "", idNext: "")); }),
+                  "if",
+                  () => setState(() { widget.ifs.add(IfSelector(condition: "", idNext: "")); }),
+                  () => setState(() { if(widget.ifs.length > 0) widget.ifs.removeAt(widget.ifs.length - 1); }),
                 ) : Container(),
                 ...ifsInnerWidgets,
 
                 (widget.ty == 2)? buildResizableRow(
-                  "options", () => setState(() { widget.options.add(OptionSelector(text: "", action: "", idNext: "")); }),
+                  "options",
+                  () => setState(() { widget.options.add(OptionSelector(text: "", action: "", idNext: "")); }),
+                  () => setState(() { if(widget.options.length > 0) widget.options.removeAt(widget.options.length - 1); }),
                 ) : Container(),
                 ...optionsInnerWidgets,
 
@@ -301,6 +338,15 @@ class _DataBlockState extends State<DataBlock> {
                       onTap: () => reselectWidth(context),
                       child: Icon(
                         Icons.pinch_outlined,
+                        color: Colors.white,
+                        size: widget.elementHeight,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => widget.deleteCallback(widget.i),
+                      child: Icon(
+                        Icons.highlight_remove,
                         color: Colors.white,
                         size: widget.elementHeight,
                       ),
@@ -425,7 +471,7 @@ class _DataBlockState extends State<DataBlock> {
             icon: Icon(Icons.arrow_downward, color: Colors.white, size: widget.elementHeight),
             style: stl,
             isExpanded: true,
-            elevation: 16,
+            elevation: 24,
             onChanged: (String? value) {
               setState(() {
                 textCtrl.value = TextEditingValue(text: value!);
@@ -438,37 +484,47 @@ class _DataBlockState extends State<DataBlock> {
                 child: Text(converter(value), style: const TextStyle(fontSize: 12, color: Colors.black)),
               );
             }).toList(),
-            selectedItemBuilder: (context) => [],
+            selectedItemBuilder: (BuildContext context) {
+              return List.generate(items.length, (index) {
+                final item = items[index];
+                return Container();
+              });
+            },
           ),
         ),
       ]),
     );
   }
 
-  Widget buildResizableRow(String fieldName, VoidCallback resizeCb) {
+  Widget buildResizableRow(String fieldName, VoidCallback addCb, VoidCallback removeCb) {
     return SizedBox(
       width: widget.blockWidth - 14,
       height: widget.elementHeight,
       child: Row(children: [
         Align(alignment: Alignment.centerLeft, child: Text(fieldName, style: stl, textAlign: TextAlign.left),),
-        const Spacer(),
+        Spacer(),
         GestureDetector(
-          onTap: resizeCb,
-          child: const Icon(Icons.add, size: 7, color: Colors.white),
+          onTap: addCb,
+          child: Icon(Icons.add_circle_outline, size: widget.elementHeight, color: Colors.blueGrey[100]),
         ),
+        SizedBox(width: 2),
+        GestureDetector(
+          onTap: removeCb,
+          child: Icon(Icons.remove_circle_outline, size: widget.elementHeight, color: Colors.blueGrey[100]),
+        )
       ]),
     );
   }
 
   Widget buildInnerFields(List<String> fieldNames, List<TextEditingController> controllers, List<void Function(String?)> onEdits, double factor) {
     List<Widget> rows = [];
-    rows.add(const SizedBox(width: 125 - 14, height: 2, child: Divider(color: Colors.black, height: 2)));
     for(int i=0; i<controllers.length; i++) {
       rows.add(buildPropertyRow(fieldNames[i], controllers[i], factor, onEdits[i]));
     }
+    rows.add(SizedBox(width: widget.blockWidth - 14, height: 2, child: Divider(color: Colors.black, height: 2)));
 
     return SizedBox(
-      width: 125 - 14,
+      width: widget.blockWidth - 14,
       // height: 7.0 * (fieldNames.length + 1),
       child: Column(
         children: rows,
@@ -516,4 +572,11 @@ class OptionSelector {
   String text;
   String action;
   String idNext;
+}
+
+class Setter {
+  Setter({required this.name, required this.value});
+
+  String name;
+  String value;
 }

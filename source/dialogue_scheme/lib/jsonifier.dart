@@ -29,8 +29,8 @@ class Jsonifier extends StatelessWidget {
       buf += "\n  \"id\": \"${b.id}\",";
       buf += "\n  \"ty\": ${b.ty},";
       buf += "\n  \"msg\": {";
-      buf += "\n    \"speaker\": \"${b.speaker}\",";
-      buf += "\n    \"text\": \"${b.text}\",";
+      buf += "\n    \"speaker\": \"${escapeQuotes(b.speaker)}\",";
+      buf += "\n    \"text\": \"${escapeQuotes(b.text)}\",";
       if (b.ty == 1) {
         buf += "\n    \"if\": [";
         for(int j=0; j<b.ifs.length; j++) {
@@ -59,11 +59,11 @@ class Jsonifier extends StatelessWidget {
   }
 
   static String describeIfSelector(IfSelector ifSlct) {
-    return "[\"${ifSlct.condition}\", \"${ifSlct.idNext}\"]";
+    return "[\"${escapeQuotes(ifSlct.condition)}\", \"${escapeQuotes(ifSlct.idNext)}\"]";
   }
 
   static String describeOptionsSelector(OptionSelector opSlct) {
-    return "[\"${opSlct.text}\", \"${opSlct.action}\", \"${opSlct.idNext}\"]";
+    return "[\"${escapeQuotes(opSlct.text)}\", \"${escapeQuotes(opSlct.action)}\", \"${escapeQuotes(opSlct.idNext)}\"]";
   }
 
   Widget buildInner(BuildContext context, bool isDarkTheme) {
@@ -117,6 +117,12 @@ class Jsonifier extends StatelessWidget {
         ]
       )
     );
+  }
+
+  static String escapeQuotes(String s) {
+    s = s.replaceAll("\"", "\\\"");
+    s = s.replaceAll("\'", "\\\'");
+    return s;
   }
 
   @override
