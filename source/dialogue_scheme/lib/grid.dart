@@ -8,6 +8,8 @@ class GridWidget extends StatefulWidget {
   GridWidget({required this.blocks, required this.updBlocksCb});
 
   List<DataBlock> blocks;
+  void Function(List<DataBlock>) updBlocksCb;
+
   Offset mousePos = const Offset(0.0, 0.0);
   Offset getMousePos() { return mousePos; }
 
@@ -17,30 +19,6 @@ class GridWidget extends StatefulWidget {
   // only for adding blocks, causes bugs when used in grid things
   double zoom = 1.0;
 
-  void Function(List<DataBlock>) updBlocksCb;
-
-  void addBlock([bool isDarkTheme=false]) {
-    print(currentOffsetFromTopLeftConner);
-    this.blocks.add(
-      DataBlock(
-        x: math.min(currentOffsetFromTopLeftConner.dx / 1.5, 1800) + 5,
-        y: math.min(currentOffsetFromTopLeftConner.dy / (zoom * 2), 1000) + 5,
-        i: DateTime.now().difference(DateTime.fromMicrosecondsSinceEpoch(0)).inMilliseconds,
-        deleteCallback: this.removeBlock,
-        isDarkTheme: isDarkTheme,
-      )
-    );
-  }
-
-  void removeBlock(int innerId) {
-    List<DataBlock> matchingBlock = this.blocks.where((block) => block.i == innerId).toList();
-    if (matchingBlock.length > 0) {
-      this.blocks.remove(matchingBlock[0]);
-    }
-  }
-
-  void setBlocks(List<DataBlock> blocks) { this.blocks = blocks; }
-
   @override
   State<GridWidget> createState() => _GridWidgetState();
 }
@@ -48,6 +26,20 @@ class GridWidget extends StatefulWidget {
 class _GridWidgetState extends State<GridWidget> {
   double zoom = 1.0;
   TransformationController transformationController = TransformationController();
+
+  List<DataBlock> blocks = [];
+  String? idOnMouse;
+
+  @override
+  void initState() {
+    super.initState();
+    this.blocks = widget.blocks;
+
+    for(int i=0; i < this.blocks.length; i++) {
+      this.blocks[i].setIdOnMouseCallback = setIdOnMouse;
+      this.blocks[i].takeIdOnMouseCallback = takeIdOnMouse;
+    }
+  }
 
   void _updateLocation(PointerEvent details) {
     setState(() {
@@ -68,25 +60,23 @@ class _GridWidgetState extends State<GridWidget> {
     final Size screenSize = MediaQuery.of(context).size;
 
     List<Widget> lines = [];
-    if (widget.blocks.length >= 2) {
-      for(int i=0; i<widget.blocks.length; i++) {
-        if (widget.blocks[i].next == "") {
+    if (this.blocks.length >= 2) {
+      for(int i=0; i<this.blocks.length; i++) {
+        if (this.blocks[i].next == "") {
           continue;
         }
-        var matchingNextBlock = widget.blocks.where((b) => b.id == widget.blocks[i].next).toList();
-        if (widget.blocks[i].ty == 1) {
-          // print("Search for ${widget.blocks[i].ifs.length}");
-          for(final selector in widget.blocks[i].ifs) {
-            // print("Search for ${selector.idNext}");
+        var matchingNextBlock = this.blocks.where((b) => b.id == this.blocks[i].next).toList();
+        if (this.blocks[i].ty == 1) {
+          for(final selector in this.blocks[i].ifs) {
             if (selector.idNext != "") {
-              final additionalBlocks = widget.blocks.where((b) => b.id == selector.idNext).toList();
+              final additionalBlocks = this.blocks.where((b) => b.id == selector.idNext).toList();
               matchingNextBlock = [...matchingNextBlock, ...additionalBlocks];
             }
           }
-        } else if (widget.blocks[i].ty == 2) {
-          for(final selector in widget.blocks[i].options) {
+        } else if (this.blocks[i].ty == 2) {
+          for(final selector in this.blocks[i].options) {
             if (selector.idNext != "") {
-              final additionalBlocks = widget.blocks.where((b) => b.id == selector.idNext).toList();
+              final additionalBlocks = this.blocks.where((b) => b.id == selector.idNext).toList();
               matchingNextBlock = [...matchingNextBlock, ...additionalBlocks];
             }
           }
@@ -94,8 +84,22 @@ class _GridWidgetState extends State<GridWidget> {
         for(final mblock in matchingNextBlock) {
           lines.add(
             drawLine(
-              Offset(widget.blocks[i].x + widget.blocks[i].blockWidth, widget.blocks[i].y + 12),
+              Offset(this.blocks[i].x + this.blocks[i].blockWidth, this.blocks[i].y + 12),
               Offset(mblock.x, mblock.y + 12),
+              screenSize,
+              isDarkTheme
+            )
+          );
+        }
+      }
+
+      if(this.idOnMouse != null) {
+        List<DataBlock> selectedBlock = this.blocks.where((b) => b.id == this.idOnMouse).toList();
+        if(selectedBlock.length > 0) {
+          lines.add(
+            drawLine(
+              Offset(selectedBlock[0].x, selectedBlock[0].y + 12),
+              Offset(widget.mousePos.dx, widget.mousePos.dy - 55 / zoom),
               screenSize,
               isDarkTheme
             )
@@ -106,7 +110,7 @@ class _GridWidgetState extends State<GridWidget> {
 
     return MouseRegion(
       onHover: _updateLocation,
-      child: Column(children: [
+      child: GestureDetector(onTap: resetIdOnMouse, child: Column(children: [
         Expanded(
           child: InteractiveViewer(
             trackpadScrollCausesScale: true,
@@ -124,7 +128,8 @@ class _GridWidgetState extends State<GridWidget> {
             onInteractionUpdate: (details) {
               setState(() {
                 zoom = transformationController.value[0];
-                widget.updBlocksCb(widget.blocks);
+                widget.blocks = this.blocks;
+                widget.updBlocksCb(this.blocks);
                 widget.zoom = zoom;
               });
             },
@@ -137,7 +142,7 @@ class _GridWidgetState extends State<GridWidget> {
                   ),
                 ),
                 ...lines,
-                ...widget.blocks,
+                ...this.blocks,
               ],
             ),
           ),
@@ -150,12 +155,12 @@ class _GridWidgetState extends State<GridWidget> {
               Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
-                  "  x${zoom.toStringAsPrecision(2)} (${widget.mousePos.dx.toInt()}; ${widget.mousePos.dy.toInt()})",
+                  "  x${zoom.toStringAsPrecision(2)} (${widget.mousePos.dx.toInt().toString().padLeft(4, '0')}; ${widget.mousePos.dy.toInt().toString().padLeft(4, '0')})",
                   style: TextStyle(color: isDarkTheme? Colors.white : Colors.black),)
               ),
-              const Spacer(),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.415),
               FloatingActionButton(
-                onPressed: () => widget.addBlock(isDarkTheme),
+                onPressed: () => this.addBlock(isDarkTheme),
                 tooltip: 'Add',
                 backgroundColor: isDarkTheme? Theme.of(context).colorScheme.inversePrimary : Theme.of(context).colorScheme.primary,
                 child: Icon(
@@ -163,11 +168,24 @@ class _GridWidgetState extends State<GridWidget> {
                   color: isDarkTheme? Colors.white : Colors.black,
                 ),
               ),
-              SizedBox(width: MediaQuery.of(context).size.width * 0.475),
+              const Spacer(),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: (this.idOnMouse != null)? Row( children: [
+                  Icon(Icons.assignment_rounded, size: 18, color: isDarkTheme? Colors.white : Colors.black),
+                  SizedBox(width: 2),
+                  Text(
+                      "${this.idOnMouse ?? ''} ",
+                      style: TextStyle(fontSize: 18, color: isDarkTheme? Colors.white : Colors.black),
+                  )
+                ]) : Container()
+              ),
+              // SizedBox(width: MediaQuery.of(context).size.width * 0.475),
             ]),
           ),
         ),
       ]),
+      ),
     );
   }
 
@@ -186,6 +204,49 @@ class _GridWidgetState extends State<GridWidget> {
         }
       },
     );
+  }
+
+   void addBlock([bool isDarkTheme=false]) {
+    this.blocks.add(
+      DataBlock(
+        x: math.min(widget.currentOffsetFromTopLeftConner.dx / 1.5, 1800) + 5,
+        y: math.min(widget.currentOffsetFromTopLeftConner.dy / (zoom * 2), 1000) + 5,
+        i: DateTime.now().difference(DateTime.fromMicrosecondsSinceEpoch(0)).inMilliseconds,
+        deleteCallback: this.removeBlock,
+        setIdOnMouseCallback: this.setIdOnMouse,
+        takeIdOnMouseCallback: this.takeIdOnMouse,
+        isDarkTheme: isDarkTheme,
+      )
+    );
+    widget.updBlocksCb(this.blocks);
+  }
+
+  void removeBlock(int innerId) {
+    List<DataBlock> matchingBlock = this.blocks.where((block) => block.i == innerId).toList();
+    if (matchingBlock.length > 0) {
+      this.blocks.remove(matchingBlock[0]);
+      widget.updBlocksCb(this.blocks);
+    }
+  }
+
+  void setBlocks(List<DataBlock> blocks) { this.blocks = blocks; }
+
+  void resetIdOnMouse() {
+    this.idOnMouse = null;
+  }
+
+  void setIdOnMouse(String id) {
+    this.idOnMouse = id;
+  }
+
+  String? takeIdOnMouse() {
+    String? takenId = this.idOnMouse;
+
+    setState(() {
+      resetIdOnMouse();
+    });
+
+    return takenId;
   }
 }
 
@@ -224,9 +285,6 @@ class GridPainter extends CustomPainter {
       double dx = eWidth * i;
       canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), paint);
     }
-
-
-
   }
 
   @override

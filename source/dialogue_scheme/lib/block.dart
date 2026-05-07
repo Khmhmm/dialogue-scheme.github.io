@@ -6,13 +6,23 @@ import 'package:crypto/crypto.dart';
 enum ColorTag { def, red, yellow, green, blue, pink }
 
 class DataBlock extends StatefulWidget {
-  DataBlock({required this.x, required this.y, required this.i, required this.deleteCallback, this.isDarkTheme=false});
+  DataBlock({
+    required this.x,
+    required this.y,
+    required this.i,
+    required this.deleteCallback,
+    required this.setIdOnMouseCallback,
+    required this.takeIdOnMouseCallback,
+    this.isDarkTheme=false
+  });
 
   double x;
   double y;
   int i;
   bool isDarkTheme;
   void Function(int) deleteCallback;
+  void Function(String) setIdOnMouseCallback;
+  String? Function() takeIdOnMouseCallback;
 
   // values
   String id = "";
@@ -278,6 +288,15 @@ class _DataBlockState extends State<DataBlock> {
         onPanUpdate: (DragUpdateDetails details) {
           updateCoords(widget.x + details.delta.dx, widget.y + details.delta.dy);
         },
+        onTap: () {
+          String? takenId = widget.takeIdOnMouseCallback();
+          if(takenId != null) {
+            setState(() {
+              _nextTextCtrl.text = takenId;
+              updateFields();
+            });
+          }
+        },
         child: Opacity(
           opacity: widget.isDarkTheme? 0.9 : 0.7,
           child: Container(
@@ -290,6 +309,7 @@ class _DataBlockState extends State<DataBlock> {
             ),
             child: Column(
               children: [
+                buildToButton(),
                 buildStaticRow("id", widget.id, () { Clipboard.setData(ClipboardData(text: widget.id)).then((_){}); }),
                 const SizedBox(height: 2.0),
                 buildDropTyRow("ty", _tyTextCtrl, ["-1", "0", "1", "2"], selectTyDescription),
@@ -434,6 +454,20 @@ class _DataBlockState extends State<DataBlock> {
           ),
         ),
       ]),
+    );
+  }
+
+  Widget buildToButton() {
+    return GestureDetector(
+      onTap: () {
+        setState((){
+          widget.setIdOnMouseCallback(widget.id);
+        });
+      },
+      child: Container(
+        alignment: Alignment.centerLeft,
+        child: Icon(Icons.arrow_circle_left_outlined, size: widget.elementHeight, color: Colors.white),
+      )
     );
   }
 

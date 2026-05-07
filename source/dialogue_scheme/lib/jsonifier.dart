@@ -31,6 +31,19 @@ class Jsonifier extends StatelessWidget {
       buf += "\n  \"msg\": {";
       buf += "\n    \"speaker\": \"${escapeQuotes(b.speaker)}\",";
       buf += "\n    \"text\": \"${escapeQuotes(b.text)}\",";
+      buf += "\n    \"setters\": [";
+      if (b.setters.length > 0) {
+        for(int i = 0; i < b.setters.length; i++) {
+          var setter = b.setters[i];
+          buf += "\n      {";
+          buf += "\n        \"name\": \"${escapeQuotes(setter.name)}\",";
+          buf += "\n        \"value\": \"${escapeQuotes(setter.value)}\"";
+          buf += "\n      }" + ((i < b.setters.length - 1)? "," : "");
+        }
+        buf += "\n    ],";
+      } else {
+        buf += "],";
+      }
       if (b.ty == 1) {
         buf += "\n    \"if\": [";
         for(int j=0; j<b.ifs.length; j++) {

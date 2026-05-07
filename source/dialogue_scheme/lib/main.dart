@@ -118,14 +118,14 @@ class _MyHomePageState extends State<MyHomePage> {
     return false;
   }
 
-  void addDataBlock() {
-    if (isBlockLinked()) {
-      return;
-    }
-    setState(() {
-      gridWidget.addBlock();
-    });
-  }
+  // void addDataBlock() {
+  //   if (isBlockLinked()) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     gridWidget.addBlock();
+  //   });
+  // }
 
   void updBlocks(List<DataBlock> blocks) {
     setState(() {
